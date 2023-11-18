@@ -1,0 +1,9 @@
+.columnType {
+	display: none;
+	color: grey;
+}
+
+.hashCell {
+	font-family: monospace;
+	font-style: italic;
+}
