@@ -2,9 +2,14 @@ const fsp = require("node:fs/promises");
 const fs = require("node:fs");
 const path = require("node:path");
 const murmurHash3 = require("imurmurhash");
+const { match } = require("node:assert");
 
 function IsNullOrWhitespace( input ) {
 	return !input || !input.trim();
+}
+
+function IsObject(obj) {
+	return typeof obj === 'object' && !Array.isArray(obj) && obj !== null
 }
 
 // https://stackoverflow.com/a/14130005
@@ -32,8 +37,10 @@ function PrintMurmurList(list) {
  
 class BDATcollator {
 
-	static RootPath = "data/bdat";
+	static RootPath = "tables/bdat";
 	static OutPath = "out/";
+	static LocalizationPath = "/gb";
+	static SheetLinksPath = "data/xc3_sheet_links.json";
 
 	static BDATTableSchemas = new Map();
 	static BDATSheets = new Map();
@@ -70,10 +77,20 @@ class BDATcollator {
 	static async GetTemplates() {
 		this.TemplateIndex = (await fsp.readFile("templates/index.html")).toString("utf8");
 		this.TemplateSheet = (await fsp.readFile("templates/sheet.html")).toString("utf8");
+	}
+
+	static async GetData() {
+		try {
+			// lazy method of swappable localization paths
+			let data = await fsp.readFile(this.SheetLinksPath);
+			data = data.toString("utf8").replace("{{LOCALIZATION_PATH}}", this.LocalizationPath);
+			this.SheetLinks = JSON.parse(data);
+		}
+		catch (e) { console.error(e); }
 
 		this.HashLookup = new Map();
-		if (fs.existsSync("templates/xb3_hash_values.txt")) {
-			let csv = (await fsp.readFile("templates/xb3_hash_values.txt")).toString("utf8");
+		if (fs.existsSync("data/xb3_hash_values.txt")) {
+			let csv = (await fsp.readFile("data/xb3_hash_values.txt")).toString("utf8");
 			csv = csv.replace(/\r/g, "");
 
 			let nights = csv.split("\n");
@@ -208,7 +225,7 @@ class BDATcollator {
 				for (let [key, value] of Object.entries(thisRow)) {
 					if (columnType.get(key) == 9) {
 						let hexOnly = value.substring(1, value.length - 1);
-						var lookupObject = {"hash": parseInt(hexOnly, 16)};
+						var lookupObject = {"hash": parseInt(hexOnly, 16),"hashStr": value};
 
 						if (lookupObject.hash == 0) {
 							lookupObject.hashStatus = "null";
@@ -229,6 +246,78 @@ class BDATcollator {
 			}
 
 			this.BDATSheets.set(key, sheet);
+		}
+	}
+
+	static CleanupSheetsStage1() {
+		for (const matchup of this.SheetLinks) {
+			if (!this.BDATSheets.has(matchup.src) || !this.BDATSheets.has(matchup.target)) {
+				continue;
+			}
+
+			var srcSheet = this.BDATSheets.get(matchup.src);
+			var srcColumns = Array.from(srcSheet.schema);
+			var srcColumnIndex = srcColumns.findIndex((e) => e.name == matchup.src_column);
+
+			if (srcColumnIndex == -1) {
+				console.warn("unable to find src column");
+				continue;
+			}
+
+			var targetSheet = this.BDATSheets.get(matchup.target);
+			var targetColumns = Array.from(targetSheet.schema);
+			var targetColumnIndex = targetColumns.findIndex((e) => e.name == matchup.target_column);
+
+			if (targetColumnIndex == -1) {
+				console.warn("unable to find target column");
+				continue;
+			}
+
+			var targetFirstIndex = targetSheet.rows[0]["$id"];
+
+			for (var i = 0; i < srcSheet.rows.length; i++) {
+				try {
+					// REDO ALL THIS SHIT CAPTAIN
+
+					var srcValue = srcSheet.rows[i][matchup.src_column];
+					var srcTrueValue = srcValue;
+
+					if (IsObject(srcValue)) {
+						if (srcValue.hashStr != null)
+							srcTrueValue = srcValue.hashStr;
+						else {
+							// this isn't confusing at all...
+							srcTrueValue = srcValue.value;
+						}
+					}
+
+					var targetValue = targetSheet.rows[srcValue - targetFirstIndex][matchup.target_column];
+					var targetTrueValue = targetValue;
+
+					if (IsObject(targetValue)) {
+						if (targetValue.hashStr != null)
+							targetTrueValue = targetValue.hashStr;
+						else {
+							// this isn't confusing at all...
+							targetTrueValue = targetValue.value;
+						}
+					}
+
+					var matchLink = `/${this.OutPath}${matchup.target.replace("#", "/")}.html`.replace("//", "/");
+					if (IsObject(srcValue)) {
+						srcValue.match = targetTrueValue;
+						srcValue.matchLink = matchLink;
+					}
+					else {
+						srcValue = {"match":targetTrueValue,"match_link":matchLink};
+					}
+
+					srcSheet.rows[i][matchup.src_column] = srcValue;					
+				}
+				catch (e) {
+					console.error("BIG DICK", e);
+				}
+			}
 		}
 	}
 
@@ -256,10 +345,12 @@ class BDATcollator {
 				
 				var classes = [];
 
-				if (columnType.get(key) == 9) {
-					classes.push("hashCell");
+				if (IsObject(display)) {
+					let dispValue = htmlEntities(display.value);
 
-					if (typeof display === 'object' && !Array.isArray(display) && display !== null) {
+					if (columnType.get(key) == 9) {
+						classes.push("hashCell");
+	
 						let hashMissing = display.hashStatus == "missing";
 						let hashNull = display.hashStatus == "null";
 
@@ -267,14 +358,19 @@ class BDATcollator {
 							classes.push("hashMissing");
 						else if (hashNull)
 							classes.push("hashNull");
-
-						let dispValue = htmlEntities(display.value);
 						
 						if (!hashMissing)
 							dispValue += `<span class="hashValue hidden">${IsNullOrWhitespace(dispValue) ? "" : "<br>"}&lt;${display.hash.toString(16).toUpperCase().padStart(8, "0")}&gt;</span>`;
-
-						display = dispValue;
 					}
+
+					if (display.match != null)
+						dispValue = display.match;
+
+					if (display.match_link != null)
+						dispValue = `<a href="${display.match_link}">${htmlEntities(dispValue)}</a>`;
+
+					// overwriting it at the end
+					display = dispValue;
 				}
 				else {
 					display = htmlEntities(display);
@@ -308,31 +404,35 @@ class BDATcollator {
 }
 
 (async () => {
-	// get templates and hash file
+	// get templates and data
 	await BDATcollator.GetTemplates();
+	await BDATcollator.GetData();
 
 	// get .bschema files
-	//await BDATcollator.GetTableSchemas();
-	{
+	await BDATcollator.GetTableSchemas();
+	/*{
 		var sysSchema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + "/sys.bschema");
+		BDATcollator.BDATTableSchemas.set(sysSchema.bdat_path, sysSchema);
+		var sysSchema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + "/fld.bschema");
 		BDATcollator.BDATTableSchemas.set(sysSchema.bdat_path, sysSchema);
 		var sysSchema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + "/gb/game/system.bschema");
 		BDATcollator.BDATTableSchemas.set(sysSchema.bdat_path, sysSchema);
-	}
+	}*/
 
 	// create index page
-	//await BDATcollator.CreateRootIndex();
+	await BDATcollator.CreateRootIndex();
 
 	// get tables and their sheets
 	await BDATcollator.GetSheetsFromTableSchemas();
 
 	// cleanup and processing
 	BDATcollator.CleanupSheetsStage0();
+	BDATcollator.CleanupSheetsStage1();
 
 	// create sheet pages
-	/*for (const sheet of BDATcollator.BDATSheets.values()) {
+	for (const sheet of BDATcollator.BDATSheets.values()) {
 		BDATcollator.CreateSheetTable(sheet);
-	}*/
-	BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/sys.bdat#CHR_PC"));
-	BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/gb/game/system.bdat#msg_player_name"));
+	}
+	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/sys.bdat#CHR_PC"));
+	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/gb/game/system.bdat#msg_player_name"));
 })()

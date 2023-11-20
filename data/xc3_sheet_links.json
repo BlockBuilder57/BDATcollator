@@ -1,0 +1,14 @@
+[
+    {
+        "src": "/sys.bdat#CHR_PC",
+        "src_column": "Name",
+        "target": "{{LOCALIZATION_PATH}}/game/system.bdat#msg_player_name",
+        "target_column": "name"
+    },
+    {
+        "src": "/sys.bdat#CHR_PC",
+        "src_column": "MealMountObj",
+        "target": "/fld.bdat#FLD_ObjList",
+        "target_column": "ID"
+    }
+]
