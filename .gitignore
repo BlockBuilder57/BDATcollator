@@ -1,2 +1,6 @@
 data/*
 out/*
+node_modules/*
+
+# don't upload hashes
+templates/*hash*

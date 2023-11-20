@@ -1,3 +1,7 @@
+.hidden {
+	display: none;
+}
+
 .columnType {
 	display: none;
 	color: grey;
@@ -5,5 +9,8 @@
 
 .hashCell {
 	font-family: monospace;
+}
+
+.hashValue {
 	font-style: italic;
 }

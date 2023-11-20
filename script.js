@@ -1,6 +1,7 @@
 const fsp = require("node:fs/promises");
 const fs = require("node:fs");
 const path = require("node:path");
+const murmurHash3 = require("imurmurhash");
 
 function IsNullOrWhitespace( input ) {
 	return !input || !input.trim();
@@ -20,10 +21,10 @@ const walk = async (dirPath) => Promise.all(
 )
 
 // helper function for hashes, not used here
-function CallMurmur(list) {
+function PrintMurmurList(list) {
 	var csv = "";
 	for (const elem of list) {
-		csv += `${murmurHash3.x86.hash32(elem).toString(16).toUpperCase()},${elem}\n`;
+		csv += `${murmurHash3(elem).result().toString(16).toUpperCase().padStart(8, "0")},${elem}\n`;
 	}
 
 	console.log(csv);
@@ -70,16 +71,14 @@ class BDATcollator {
 		this.TemplateIndex = (await fsp.readFile("templates/index.html")).toString("utf8");
 		this.TemplateSheet = (await fsp.readFile("templates/sheet.html")).toString("utf8");
 
-		if (fs.existsSync("templates/xb3_hashes.csv")) {
-			this.HashLookup = new Map();
-
-			let csv = (await fsp.readFile("templates/xb3_hashes.csv")).toString("utf8");
-			csv = csv.replace("\r", "");
+		this.HashLookup = new Map();
+		if (fs.existsSync("templates/xb3_hash_values.txt")) {
+			let csv = (await fsp.readFile("templates/xb3_hash_values.txt")).toString("utf8");
+			csv = csv.replace(/\r/g, "");
 
 			let nights = csv.split("\n");
 			for (const night of nights) { // i'm sorry (i'm not)
-				let split = night.split(",");
-				this.HashLookup.set(split[0], split[1]);
+				this.HashLookup.set(murmurHash3(night).result().toString(16).toUpperCase().padStart(8, "0"), night);
 			}
 		}
 	}
@@ -88,8 +87,10 @@ class BDATcollator {
 		//console.log("getting schema at", filePath);
 		const json = await this.FetchJSON(filePath);
 
-		if (json == null)
+		if (json == null) {
+			console.error("Failed to open table schema:", filePath);
 			return null;
+		}
 
 		// we have the file, let's clean it up
 		let pathMinimized = filePath.substring(this.RootPath.length, path.length).replace("bschema", "bdat");
@@ -157,7 +158,7 @@ class BDATcollator {
 	}
 
 	static async GetSheet(filePath, sheetName, schema) {
-		console.log("getting sheet", sheetName, "at", filePath);
+		//console.log("getting sheet", sheetName, "at", filePath);
 		const json = await this.FetchJSON(filePath);
 
 		if (json == null)
@@ -211,11 +212,11 @@ class BDATcollator {
 
 						if (lookupObject.hash == 0) {
 							lookupObject.hashStatus = "null";
-							lookupObject.value = "(null)";
+							lookupObject.value = "";
 						}
 						else if (!this.HashLookup.has(hexOnly)) {
 							lookupObject.hashStatus = "missing";
-							lookupObject.value = "(missing hash)";
+							lookupObject.value = value;
 						}
 						else {
 							lookupObject.hashStatus = "found";
@@ -232,6 +233,8 @@ class BDATcollator {
 	}
 
 	static async CreateSheetTable(sheet) {
+		console.log("creating page for", sheet.parent_table + "#" + sheet.name);
+
 		let columnType = new Map();
 		for (const column of sheet.schema) {
 			columnType.set(column.name, column.type);
@@ -240,9 +243,9 @@ class BDATcollator {
 		let table = "<table class='sortable'>";
 
 		table += "<thead><tr id='header'>";
-		table += "<th>$id</th>";
+		table += "<th>idx</th>";
 		for (const column of sheet.schema) {
-			table += `<th>${htmlEntities(column.name)}<span class="columnType"> - ${this.BDATTypes[column.type]}</span></th>`;
+			table += `<th>${htmlEntities(column.name)}<span class="columnType"><br>${this.BDATTypes[column.type]}</span></th>`;
 		}
 		table += "</tr></thead>";
 
@@ -257,12 +260,20 @@ class BDATcollator {
 					classes.push("hashCell");
 
 					if (typeof display === 'object' && !Array.isArray(display) && display !== null) {
-						if (display.hashStatus == "missing")
+						let hashMissing = display.hashStatus == "missing";
+						let hashNull = display.hashStatus == "null";
+
+						if (hashMissing)
 							classes.push("hashMissing");
-						else if (display.hashStatus == "null")
+						else if (hashNull)
 							classes.push("hashNull");
 
-						display = `${htmlEntities(display.value)}<br><span class="hashValue">&lt;${display.hash.toString(16).toUpperCase().padStart(8, "0")}&gt;</span>`;
+						let dispValue = htmlEntities(display.value);
+						
+						if (!hashMissing)
+							dispValue += `<span class="hashValue hidden">${IsNullOrWhitespace(dispValue) ? "" : "<br>"}&lt;${display.hash.toString(16).toUpperCase().padStart(8, "0")}&gt;</span>`;
+
+						display = dispValue;
 					}
 				}
 				else {
@@ -301,23 +312,27 @@ class BDATcollator {
 	await BDATcollator.GetTemplates();
 
 	// get .bschema files
-	await BDATcollator.GetTableSchemas();
+	//await BDATcollator.GetTableSchemas();
+	{
+		var sysSchema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + "/sys.bschema");
+		BDATcollator.BDATTableSchemas.set(sysSchema.bdat_path, sysSchema);
+		var sysSchema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + "/gb/game/system.bschema");
+		BDATcollator.BDATTableSchemas.set(sysSchema.bdat_path, sysSchema);
+	}
 
 	// create index page
-	await BDATcollator.CreateRootIndex();
+	//await BDATcollator.CreateRootIndex();
 
 	// get tables and their sheets
 	await BDATcollator.GetSheetsFromTableSchemas();
-	//await BDATcollator.GetSheetsFromTableSchema(BDATcollator.BDATTableSchemas.get("/sys.bdat"));
-
-	//console.log(BDATcollator.BDATSheets);
 
 	// cleanup and processing
 	BDATcollator.CleanupSheetsStage0();
 
 	// create sheet pages
-	for (const sheet of BDATcollator.BDATSheets.values()) {
+	/*for (const sheet of BDATcollator.BDATSheets.values()) {
 		BDATcollator.CreateSheetTable(sheet);
-	}
-	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/sys.bdat#CHR_PC"));
+	}*/
+	BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/sys.bdat#CHR_PC"));
+	BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/gb/game/system.bdat#msg_player_name"));
 })()
