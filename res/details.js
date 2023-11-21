@@ -30,7 +30,7 @@ function showHashValues(e) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-	offsetAnchor();
+	setTimeout(offsetAnchor, 50);
 
 	document.querySelector("#cbColumnTypes").addEventListener("change", showColumnTypes);
 	document.querySelector("#cbHashValues").addEventListener("change", showHashValues);

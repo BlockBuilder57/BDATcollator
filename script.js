@@ -38,13 +38,13 @@ function PrintMurmurList(list) {
  
 class BDATcollator {
 
-	static RootPath = "tables/xc3_211_alldlc_hashed_edits";
+	static RootPath = "tables/xc2_210_base_hashed_edits";
 	static OutPath = "out/";
 	static LocalizationPath = "/gb";
 
 	static IgnoreLocalizations = ["/cn", "/fr", "/gb", "/ge", "/it", "/jp", "/kr", "/sp", "/tw"];
 
-	static SheetLinksPath = "data/xc3_sheet_links.json";
+	static SheetLinksPath = "data/xc2_sheet_links.json";
 
 	static BDATTableSchemas = new Map();
 	static BDATSheets = new Map();
@@ -433,7 +433,7 @@ class BDATcollator {
 					}
 
 					// put in a tag. optionally add a link
-					dispValue = `<a${IsNullOrWhitespace(display.match_link) ? "" : ` href="${display.match_link}"`}>${dispValue}</a>`;
+					dispValue = `<a${IsNullOrWhitespace(display.match_link) ? "" : ` href="${display.match_link}" title="${display.raw_value}"`}>${dispValue}</a>`;
 					// but no empty elements
 					dispValue = dispValue.replace("<a></a>", "");
 				
@@ -480,17 +480,21 @@ class BDATcollator {
 	await BDATcollator.GetData();
 
 	// get .bschema files
-	await BDATcollator.GetTableSchemas();
-	/*{
-		var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + "/sys.bschema");
+	//await BDATcollator.GetTableSchemas();
+	{
+		/*var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + "/sys.bschema");
 		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);
 		var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + "/fld.bschema");
 		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);
 		var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + "/prg.bschema");
 		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);
 		var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + BDATcollator.LocalizationPath + "/game/system.bschema");
+		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);*/
+		var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + "/common.bschema");
 		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);
-	}*/
+		var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + BDATcollator.LocalizationPath + "/common_ms.bschema");
+		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);
+	}
 
 	// create index page
 	await BDATcollator.CreateRootIndex();

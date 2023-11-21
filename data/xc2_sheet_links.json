@@ -1,0 +1,10 @@
+[
+    {
+        "src": "/common.bdat#CHR_Bl",
+        "src_column": "Name",
+        "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#chr_bl_ms",
+        "target_column": "$id",
+        "target_column_value": "name"
+    },
+    {}
+]
