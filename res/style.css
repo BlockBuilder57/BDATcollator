@@ -2,9 +2,13 @@
 	display: none;
 }
 
+.cellWrapper {
+	display: flex;
+	flex-direction: column;
+}
+
 .columnType {
-	display: none;
-	color: grey;
+	color: lightgray;
 }
 
 .hashCell {
