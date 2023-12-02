@@ -87,7 +87,7 @@ class BDATcollator {
 		try {
 			// lazy method of swappable localization paths
 			let data = await fsp.readFile(this.SheetLinksPath);
-			data = data.toString("utf8").replace("{{LOCALIZATION_PATH}}", this.LocalizationPath);
+			data = data.toString("utf8").replace(/{{LOCALIZATION_PATH}}/g, this.LocalizationPath);
 			this.SheetLinks = JSON.parse(data);
 		}
 		catch (e) { console.error(e); }
@@ -217,10 +217,10 @@ class BDATcollator {
 		}
 	}
 
-	// CLEANUP STAGE 0: HASHES
+	// CLEANUP STAGE 1: HASHES
 	// bdat-rs takes care of hashes in the column names, but not in values!
 	// we want to be able to retain both, so let's do a bit of cleanup here
-	static CleanupSheetsStage0() {
+	static CleanupSheetsStage1() {
 		let sheetKeys = this.BDATSheets.keys();
 		for (const key of sheetKeys) {
 			let sheet = this.BDATSheets.get(key);
@@ -262,15 +262,59 @@ class BDATcollator {
 		}
 	}
 
-	// CLEANUP STAGE 1: REFERENCES
+	// CLEANUP STAGE 2: TEMPLATES
+	// this is a helper stage to stage 3. templates are used when repeating table indices would just get too obtuse
+	// templates become incredibly useful with, for example, items in 2, as their references are split across many, many tables
+	// instead of having 24 duplicates in the sheet links, we can just declare a template with 24 children, then apply the template to the link
+	static CleanupSheetsStage2() {
+		for (var i = 0; i < this.SheetLinks.links.length; i++) {
+			const matchup = this.SheetLinks.links[i];
+
+			// continue if there is no template specified
+			if (matchup.template == null || IsNullOrWhitespace(matchup.template))
+				continue;
+
+			// template doesn't exist, continue
+			if (this.SheetLinks.templates[matchup.template] == null) {
+				console.debug(`no template "${matchup.template}" found`);
+				continue;
+			}
+
+			const template = this.SheetLinks.templates[matchup.template];
+
+			// delete this matchup from the array
+			this.SheetLinks.links.splice(i, 1);
+
+			for (var j = 0; j < template.length; j++) {
+				let merged = {...matchup, ...template[j]};
+				//delete merged.template;
+
+				// add to links
+				this.SheetLinks.links.splice(i, 0, merged);
+			}
+
+			// skip ahead to the next matchup
+			i += j;
+		}
+	}
+
+	// CLEANUP STAGE 3: REFERENCES
 	// references are not a concept native to bdat tables, everything is matched "by hand"
 	// so, we need to define all links to other tables through a lookup table
 	// occaisionally, we need criteria to further match.
-	static CleanupSheetsStage1() {
-		for (const matchup of this.SheetLinks) {
+	static CleanupSheetsStage3(links, defaultMatchup) {
+		if (links == null)
+			return;
+
+		for (let matchup of links) {
 			if (!this.BDATSheets.has(matchup.src) || !this.BDATSheets.has(matchup.target)) {
+				//console.debug("missing a referenced sheet", "source?", this.BDATSheets.has(matchup.src), "target?", this.BDATSheets.has(matchup.target));
 				continue;
 			}
+
+			// if we have a default matchup, apply its properties
+			if (defaultMatchup != null)
+				matchup = {...defaultMatchup, ...matchup};
 
 			var srcSheet = this.BDATSheets.get(matchup.src);
 			var targetSheet = this.BDATSheets.get(matchup.target);
@@ -283,31 +327,40 @@ class BDATcollator {
 				var srcBasicValue = srcValue;
 
 				// first, if we're matching against 0, then that's probably an empty reference
-				if (srcValue == 0)
+				// don't skip if we explicitly ignore zero values
+				if (srcValue == 0 && !matchup.ignore_zero_values)
 					continue;
 
 				// next, let's check the criteria
-				var failedCriteria = false;
+				if (matchup.criteria != null) {
+					var failedCriteria = false;
 
-				function CheckCriteriaType(type, func) {
-					if (failedCriteria || matchup.criteria == null)
-						return;
+					// set columns if they haven't been set
+					for (var crit of matchup.criteria) {
+						crit.column = IsNullOrWhitespace(crit.column) ? matchup.src_column : crit.column;
+					}
 
-					for (const crit of matchup.criteria.filter((e) => e.type == type)) {
-						if (!func(crit)) {
-							failedCriteria = true;
-							//console.debug(`Match for ${matchup.src}[${i}] to ${matchup.target} failed ${type} criteria`);
+					function CheckCriteriaType(type, func) {
+						if (failedCriteria || matchup.criteria == null)
+							return;
+
+						for (const crit of matchup.criteria.filter((e) => e.type == type)) {
+							if (!func(crit)) {
+								failedCriteria = true;
+								//console.debug(`Match for ${matchup.src}[${i}] to ${matchup.target} failed ${type} criteria`);
+							}
 						}
 					}
+
+					CheckCriteriaType("src_column_above", (crit) => { return srcSheet.rows[i][crit.column] > crit.value; });
+					CheckCriteriaType("src_column_below", (crit) => { return srcSheet.rows[i][crit.column] < crit.value; });
+					CheckCriteriaType("src_column_equals", (crit) => { return srcSheet.rows[i][crit.column] == crit.value; });
+					CheckCriteriaType("src_column_between", (crit) => { return srcSheet.rows[i][crit.column] > crit.above && srcSheet.rows[i][crit.column] < crit.below; });
+
+					// if we fail, onto the next
+					if (failedCriteria)
+						continue;
 				}
-
-				CheckCriteriaType("src_column_above", (crit) => { return srcSheet.rows[i][crit.column] > crit.value; });
-				CheckCriteriaType("src_column_below", (crit) => { return srcSheet.rows[i][crit.column] < crit.value; });
-				CheckCriteriaType("src_column_equals", (crit) => { return srcSheet.rows[i][crit.column] == crit.value; });
-
-				// if we fail, onto the next
-				if (failedCriteria)
-					continue;
 
 				// if this is already a value somehow, we want the actual value
 				if (IsObject(srcValue)) {
@@ -315,6 +368,16 @@ class BDATcollator {
 						srcBasicValue = srcValue.raw_value;
 					else
 						continue;
+				}
+
+				// add any offsets here
+				if (Number.isInteger(srcBasicValue) && Number.isInteger(matchup.value_offset)) {
+					srcBasicValue += matchup.value_offset;
+					// update object if needed
+					if (IsObject(srcValue))
+						srcValue.raw_value = srcBasicValue;
+					else
+						srcValue = srcBasicValue;
 				}
 
 				var targetIndex = targetSheet.rows.findIndex((e) => {
@@ -330,7 +393,7 @@ class BDATcollator {
 					continue;
 				}
 
-				var targetColumn = IsNullOrWhitespace(matchup.target_column_value) ? matchup.target_column : matchup.target_column_value;
+				var targetColumn = IsNullOrWhitespace(matchup.target_column_display) ? matchup.target_column : matchup.target_column_display;
 				var targetValue = targetSheet.rows[targetIndex][targetColumn];
 
 				if (targetValue == null) {
@@ -371,6 +434,7 @@ class BDATcollator {
 
 				srcValue.match_value = matchValue;
 				srcValue.match_link = matchLink;
+				srcValue.match_hints = matchup.hints;
 
 				srcSheet.rows[i][matchup.src_column] = srcValue;
 			}
@@ -433,12 +497,16 @@ class BDATcollator {
 					}
 
 					// put in a tag. optionally add a link
-					dispValue = `<a${IsNullOrWhitespace(display.match_link) ? "" : ` href="${display.match_link}" title="${display.raw_value}"`}>${dispValue}</a>`;
+					let tagValue = "<a"
+					tagValue = "<a"
+					tagValue += IsNullOrWhitespace(display.match_link) ? "" : ` href="${display.match_link}" title="${display.raw_value}"`;
+					tagValue += display.match_hints instanceof Array ? ` class="${display.match_hints.join(" ")}"` : "";
+					tagValue += `>${dispValue}</a>`;
 					// but no empty elements
-					dispValue = dispValue.replace("<a></a>", "");
+					tagValue = tagValue.replace("<a></a>", "");
 				
 					// overwriting it at the end
-					display = dispValue + extraElements;
+					display = tagValue + extraElements;
 				}
 				else {
 					display = htmlEntities(display);
@@ -497,14 +565,20 @@ class BDATcollator {
 	}
 
 	// create index page
-	await BDATcollator.CreateRootIndex();
+	//await BDATcollator.CreateRootIndex();
 
 	// get tables and their sheets
 	await BDATcollator.GetSheetsFromTableSchemas();
 
 	// cleanup and processing
-	BDATcollator.CleanupSheetsStage0();
 	BDATcollator.CleanupSheetsStage1();
+	BDATcollator.CleanupSheetsStage2();
+	BDATcollator.CleanupSheetsStage3(BDATcollator.SheetLinks.localizations, {
+		"target_column": "$id",
+        "target_column_display": "name",
+		"hints": ["localizationCell"]
+	});
+	BDATcollator.CleanupSheetsStage3(BDATcollator.SheetLinks.links);
 
 	// create sheet pages
 	for (const sheet of BDATcollator.BDATSheets.values()) {
@@ -515,4 +589,11 @@ class BDATcollator {
 	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/fld.bdat#FLD_NpcResource"));
 	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/prg.bdat#157937BA"));
 	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get(BDATcollator.LocalizationPath + "/game/system.bdat#msg_player_name"));
+	// 2
+	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/common.bdat#CHR_Dr"));
+	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/common.bdat#CHR_Bl"));
+	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/common.bdat#CHR_Ir"));
+	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get(BDATcollator.LocalizationPath + "/common_ms.bdat#chr_dr_ms"));
+	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get(BDATcollator.LocalizationPath + "/common_ms.bdat#chr_bl_ms"));
+	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/common.bdat#MNU_DlcGift"));
 })()

@@ -18,3 +18,8 @@
 .hashValue {
 	font-style: italic;
 }
+
+.localizationCell {
+	color: var(--td-color);
+	text-decoration: underline dotted;
+}

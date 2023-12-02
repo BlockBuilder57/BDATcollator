@@ -1,82 +1,83 @@
-[
-    {
-        "src": "/sys.bdat#CHR_PC",
-        "src_column": "Name",
-        "target": "{{LOCALIZATION_PATH}}/game/system.bdat#msg_player_name",
-        "target_column": "$id",
-        "target_column_value": "name"
-    },
-    {
-        "src": "/sys.bdat#CHR_PC",
-        "src_column": "MealMountObj",
-        "target": "/fld.bdat#FLD_ObjList",
-        "target_column": "ID"
-    },
-    {
-        "src": "/sys.bdat#CHR_PC",
-        "src_column": "CookMainMountObj",
-        "target": "/fld.bdat#FLD_ObjList",
-        "target_column": "ID"
-    },
-    {
-        "src": "/sys.bdat#CHR_PC",
-        "src_column": "CookAssistMountObj",
-        "target": "/fld.bdat#FLD_ObjList",
-        "target_column": "ID"
-    },
-    {
-        "src": "/fld.bdat#FLD_NpcResource",
-        "src_column": "PresetID",
-        "target": "/prg.bdat#157937BA",
-        "target_column": "$id",
-        "criteria": [
-            {
-                "type": "src_column_equals",
-                "column": "ModelType",
-                "value": 0
-            }
-        ]
-            
-    },
-    {
-        "src": "/fld.bdat#FLD_NpcResource",
-        "src_column": "PresetID",
-        "target": "/sys.bdat#CHR_PC",
-        "target_column": "$id",
-        "target_column_value": "Name",
-        "criteria": [
-            {
-                "type": "src_column_equals",
-                "column": "ModelType",
-                "value": 1
-            }
-        ]
-    },
-    {
-        "src": "/fld.bdat#FLD_NpcResource",
-        "src_column": "PresetID",
-        "target": "/fld.bdat#FLD_EnemyData",
-        "target_column": "$id",
-        "criteria": [
-            {
-                "type": "src_column_equals",
-                "column": "ModelType",
-                "value": 2
-            }
-        ]
-    }
-    ,
-    {
-        "src": "/fld.bdat#FLD_NpcResource",
-        "src_column": "PresetID",
-        "target": "/sys.bdat#RSC_Story",
-        "target_column": "$id",
-        "criteria": [
-            {
-                "type": "src_column_equals",
-                "column": "ModelType",
-                "value": 4
-            }
-        ]
-    }
-]
+{
+    "links": [
+        {
+            "src": "/sys.bdat#CHR_PC",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/game/system.bdat#msg_player_name",
+            "target_column": "$id",
+            "target_column_display": "name"
+        },
+        {
+            "src": "/sys.bdat#CHR_PC",
+            "src_column": "MealMountObj",
+            "target": "/fld.bdat#FLD_ObjList",
+            "target_column": "ID"
+        },
+        {
+            "src": "/sys.bdat#CHR_PC",
+            "src_column": "CookMainMountObj",
+            "target": "/fld.bdat#FLD_ObjList",
+            "target_column": "ID"
+        },
+        {
+            "src": "/sys.bdat#CHR_PC",
+            "src_column": "CookAssistMountObj",
+            "target": "/fld.bdat#FLD_ObjList",
+            "target_column": "ID"
+        },
+        {
+            "src": "/fld.bdat#FLD_NpcResource",
+            "src_column": "PresetID",
+            "target": "/prg.bdat#157937BA",
+            "target_column": "$id",
+            "criteria": [
+                {
+                    "type": "src_column_equals",
+                    "column": "ModelType",
+                    "value": 0
+                }
+            ]
+                
+        },
+        {
+            "src": "/fld.bdat#FLD_NpcResource",
+            "src_column": "PresetID",
+            "target": "/sys.bdat#CHR_PC",
+            "target_column": "$id",
+            "target_column_display": "Name",
+            "criteria": [
+                {
+                    "type": "src_column_equals",
+                    "column": "ModelType",
+                    "value": 1
+                }
+            ]
+        },
+        {
+            "src": "/fld.bdat#FLD_NpcResource",
+            "src_column": "PresetID",
+            "target": "/fld.bdat#FLD_EnemyData",
+            "target_column": "$id",
+            "criteria": [
+                {
+                    "type": "src_column_equals",
+                    "column": "ModelType",
+                    "value": 2
+                }
+            ]
+        },
+        {
+            "src": "/fld.bdat#FLD_NpcResource",
+            "src_column": "PresetID",
+            "target": "/sys.bdat#RSC_Story",
+            "target_column": "$id",
+            "criteria": [
+                {
+                    "type": "src_column_equals",
+                    "column": "ModelType",
+                    "value": 4
+                }
+            ]
+        }
+    ]    
+}

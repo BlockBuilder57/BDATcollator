@@ -1,10 +1,547 @@
-[
-    {
-        "src": "/common.bdat#CHR_Bl",
-        "src_column": "Name",
-        "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#chr_bl_ms",
-        "target_column": "$id",
-        "target_column_value": "name"
+{
+    "templates": {
+        "items": [
+            {
+                "target": "/common.bdat#ITM_PcEquip",
+                "target_column": "$id",
+                "criteria": [
+                    {
+                        "type": "src_column_between",
+                        "above": 0,
+                        "below": 5000
+                    }
+                ]
+            },
+            {
+                "target": "/common.bdat#ITM_PcWpn",
+                "target_column": "$id",
+                "criteria": [
+                    {
+                        "type": "src_column_between",
+                        "above": 5000,
+                        "below": 10000
+                    }
+                ]
+            },
+            {
+                "target": "/common.bdat#ITM_PcWpnChip",
+                "target_column": "$id",
+                "criteria": [
+                    {
+                        "type": "src_column_between",
+                        "above": 10000,
+                        "below": 15000
+                    }
+                ]
+            },
+            {
+                "target": "/common.bdat#ITM_Orb",
+                "target_column": "$id",
+                "criteria": [
+                    {
+                        "type": "src_column_between",
+                        "above": 15000,
+                        "below": 17000
+                    }
+                ]
+            },
+            {
+                "target": "/common.bdat#ITM_OrbEquip",
+                "target_column": "$id",
+                "criteria": [
+                    {
+                        "type": "src_column_between",
+                        "above": 17000,
+                        "below": 20000
+                    }
+                ]
+            },
+            {
+                "target": "/common.bdat#ITM_SalvageList",
+                "target_column": "$id",
+                "criteria": [
+                    {
+                        "type": "src_column_between",
+                        "above": 20000,
+                        "below": 25000
+                    }
+                ]
+            },
+            {
+                "target": "/common.bdat#ITM_PreciousList",
+                "target_column": "$id",
+                "criteria": [
+                    {
+                        "type": "src_column_between",
+                        "above": 25000,
+                        "below": 25500
+                    }
+                ]
+            },
+            {
+                "target": "/common.bdat#ITM_PreciousListIra",
+                "target_column": "$id",
+                "criteria": [
+                    {
+                        "type": "src_column_between",
+                        "above": 25500,
+                        "below": 26000
+                    }
+                ]
+            },
+            {
+                "target": "/common.bdat#ITM_InfoList",
+                "target_column": "$id",
+                "criteria": [
+                    {
+                        "type": "src_column_between",
+                        "above": 26000,
+                        "below": 27000
+                    }
+                ]
+            },
+            {
+                "target": "/common.bdat#ITM_EventList",
+                "target_column": "$id",
+                "criteria": [
+                    {
+                        "type": "src_column_between",
+                        "above": 27000,
+                        "below": 30000
+                    }
+                ]
+            },
+            {
+                "target": "/common.bdat#ITM_CollectionList",
+                "target_column": "$id",
+                "criteria": [
+                    {
+                        "type": "src_column_between",
+                        "above": 30000,
+                        "below": 35000
+                    }
+                ]
+            },
+            {
+                "target": "/common.bdat#ITM_TresureList",
+                "target_column": "$id",
+                "criteria": [
+                    {
+                        "type": "src_column_between",
+                        "above": 35000,
+                        "below": 40000
+                    }
+                ]
+            },
+            {
+                "target": "/common.bdat#ITM_FavoriteList",
+                "target_column": "$id",
+                "criteria": [
+                    {
+                        "type": "src_column_between",
+                        "above": 40000,
+                        "below": 45000
+                    }
+                ]
+            },
+            {
+                "target": "/common.bdat#ITM_CrystalList",
+                "target_column": "$id",
+                "criteria": [
+                    {
+                        "type": "src_column_between",
+                        "above": 45000,
+                        "below": 50000
+                    }
+                ]
+            },
+            {
+                "target": "/common.bdat#ITM_BoosterList",
+                "target_column": "$id",
+                "criteria": [
+                    {
+                        "type": "src_column_between",
+                        "above": 50000,
+                        "below": 56000
+                    }
+                ]
+            },
+            {
+                "target": "/common.bdat#ITM_HanaRole",
+                "target_column": "$id",
+                "criteria": [
+                    {
+                        "type": "src_column_between",
+                        "above": 56000,
+                        "below": 57000
+                    }
+                ]
+            },
+            {
+                "target": "/common.bdat#ITM_HanaAtr",
+                "target_column": "$id",
+                "criteria": [
+                    {
+                        "type": "src_column_between",
+                        "above": 57000,
+                        "below": 58000
+                    }
+                ]
+            },
+            {
+                "target": "/common.bdat#ITM_HanaArtsEnh",
+                "target_column": "$id",
+                "criteria": [
+                    {
+                        "type": "src_column_between",
+                        "above": 58000,
+                        "below": 59000
+                    }
+                ]
+            },
+            {
+                "target": "/common.bdat#ITM_HanaNArtsSet",
+                "target_column": "$id",
+                "criteria": [
+                    {
+                        "type": "src_column_between",
+                        "above": 59000,
+                        "below": 60000
+                    }
+                ]
+            },
+            {
+                "target": "/common.bdat#ITM_HanaAssist",
+                "target_column": "$id",
+                "criteria": [
+                    {
+                        "type": "src_column_between",
+                        "above": 60000,
+                        "below": 61000
+                    }
+                ]
+            },
+            {
+                "target": "/common.bdat#ITM_EtherCrystal",
+                "target_column": "$id",
+                "criteria": [
+                    {
+                        "type": "src_column_between",
+                        "above": 61000,
+                        "below": 62000
+                    }
+                ]
+            }
+        ]
     },
-    {}
-]
+    "localizations": [
+        {
+            "src": "/common.bdat#CHR_Bl",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#chr_bl_ms"
+        },
+        {
+            "src": "/common.bdat#CHR_Dr",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#chr_dr_ms"
+        },
+        {
+            "src": "/common.bdat#ITM_PcEquip",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_pcequip"
+        },
+        {
+            "src": "/common.bdat#ITM_PcEquip",
+            "src_column": "Rarity",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_rarity",
+            "ignore_zero_values": true,
+            "value_offset": 1
+        },
+        {
+            "src": "/common.bdat#ITM_PcWpn",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_pcwpn_ms"
+        },
+        {
+            "src": "/common.bdat#ITM_PcWpnChip",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_pcwpnchip_ms"
+        },
+        {
+            "src": "/common.bdat#ITM_PcWpnChip",
+            "src_column": "Rarity",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_rarity",
+            "ignore_zero_values": true,
+            "value_offset": 1
+        },
+        {
+            "src": "/common.bdat#ITM_Orb",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_orb"
+        },
+        {
+            "src": "/common.bdat#ITM_Orb",
+            "src_column": "Rarity",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_rarity",
+            "ignore_zero_values": true,
+            "value_offset": 1
+        },
+        {
+            "src": "/common.bdat#ITM_OrbEquip",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_orb"
+        },
+        {
+            "src": "/common.bdat#ITM_OrbEquip",
+            "src_column": "Rarity",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_rarity",
+            "ignore_zero_values": true,
+            "value_offset": 1
+        },
+        {
+            "src": "/common.bdat#ITM_SalvageList",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_salvage"
+        },
+        {
+            "src": "/common.bdat#ITM_SalvageList",
+            "src_column": "Caption",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_salvage"
+        },
+        {
+            "src": "/common.bdat#ITM_SalvageList",
+            "src_column": "Rarity",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_rarity",
+            "ignore_zero_values": true,
+            "value_offset": 1
+        },
+        {
+            "src": "/common.bdat#ITM_PreciousList",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_precious"
+        },
+        {
+            "src": "/common.bdat#ITM_PreciousList",
+            "src_column": "Caption",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_precious"
+        },
+        {
+            "src": "/common.bdat#ITM_PreciousListIra",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_precious"
+        },
+        {
+            "src": "/common.bdat#ITM_PreciousListIra",
+            "src_column": "Caption",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_precious"
+        },
+        {
+            "src": "/common.bdat#ITM_InfoList",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_info"
+        },
+        {
+            "src": "/common.bdat#ITM_InfoList",
+            "src_column": "Caption",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_info"
+        },
+        {
+            "src": "/common.bdat#ITM_EventList",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_evt"
+        },
+        {
+            "src": "/common.bdat#ITM_EventList",
+            "src_column": "Caption",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_evt"
+        },
+        {
+            "src": "/common.bdat#ITM_CollectionList",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_collection"
+        },
+        {
+            "src": "/common.bdat#ITM_CollectionList",
+            "src_column": "Caption",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_collection"
+        },
+        {
+            "src": "/common.bdat#ITM_CollectionList",
+            "src_column": "Category",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_collectionitemtype",
+            "ignore_zero_values": true,
+            "value_offset": -3
+        },
+        {
+            "src": "/common.bdat#ITM_CollectionList",
+            "src_column": "Rarity",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_rarity",
+            "ignore_zero_values": true,
+            "value_offset": 1
+        },
+        {
+            "src": "/common.bdat#ITM_TresureList",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_tresure"
+        },
+        {
+            "src": "/common.bdat#ITM_TresureList",
+            "src_column": "Caption",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_tresure"
+        },
+        {
+            "src": "/common.bdat#ITM_TresureList",
+            "src_column": "Rarity",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_rarity",
+            "ignore_zero_values": true,
+            "value_offset": 1
+        },
+        {
+            "src": "/common.bdat#ITM_FavoriteList",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_favorite"
+        },
+        {
+            "src": "/common.bdat#ITM_FavoriteList",
+            "src_column": "Caption",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_favorite"
+        },
+        {
+            "src": "/common.bdat#ITM_FavoriteList",
+            "src_column": "Category",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_favorite_category",
+            "ignore_zero_values": true,
+            "value_offset": -11
+        },
+        {
+            "src": "/common.bdat#ITM_FavoriteList",
+            "src_column": "Rarity",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_rarity",
+            "ignore_zero_values": true,
+            "value_offset": 1
+        },
+        {
+            "src": "/common.bdat#ITM_CrystalList",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_crystal"
+        },
+        {
+            "src": "/common.bdat#ITM_CrystalList",
+            "src_column": "Rarity",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_rarity",
+            "ignore_zero_values": true,
+            "value_offset": 1
+        },
+        {
+            "src": "/common.bdat#ITM_BoosterList",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_booster"
+        },
+        {
+            "src": "/common.bdat#ITM_BoosterList",
+            "src_column": "Category",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_ideacollar_ms",
+            "ignore_zero_values": true,
+            "value_offset": 1
+        },
+        {
+            "src": "/common.bdat#ITM_BoosterList",
+            "src_column": "Rarity",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_rarity",
+            "ignore_zero_values": true,
+            "value_offset": 1
+        },
+        {
+            "src": "/common.bdat#ITM_HanaRole",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_hana_role_ms"
+        },
+        {
+            "src": "/common.bdat#ITM_HanaRole",
+            "src_column": "Role",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_role_name_ms"
+        },
+        {
+            "src": "/common.bdat#ITM_HanaAtr",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_hana_atr_ms"
+        },
+        {
+            "src": "/common.bdat#ITM_HanaAtr",
+            "src_column": "Caption",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_hana_atr_ms"
+        },
+        {
+            "src": "/common.bdat#ITM_HanaArtsEnh",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_orb"
+        },
+        {
+            "src": "/common.bdat#ITM_HanaNArtsSet",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_hana_narts_set_ms"
+        },
+        {
+            "src": "/common.bdat#ITM_HanaAssist",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_orb"
+        },
+        {
+            "src": "/common.bdat#MNU_DlcGift",
+            "src_column": "title",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_dlc_gift"
+        },
+        {
+            "src": "/common.bdat#ITM_PcWpnType",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_pcwpntype_ms"
+        },
+        {
+            "src": "/common.bdat#ITM_PcWpnType",
+            "src_column": "Role",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_role_name_ms"
+        },
+        {
+            "src": "/common.bdat#ITM_OrbRecipe",
+            "src_column": "Rarity",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_rarity",
+            "ignore_zero_values": true,
+            "value_offset": 1
+        },
+        {
+            "src": "/common.bdat#ITM_OrbRecipe",
+            "src_column": "RscCat",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_collectionitemtype",
+            "ignore_zero_values": true,
+            "value_offset": -3
+        }
+    ],
+    "links": [
+        {
+            "src": "/common.bdat#CHR_Ir",
+            "src_column": "driverID",
+            "target": "/common.bdat#CHR_Dr",
+            "target_column": "$id",
+            "target_column_display": "Name"
+        },
+        {
+            "src": "/common.bdat#MNU_DlcGift",
+            "src_column": "item_id",
+            "template": "items",
+            "target_column_display": "Name"
+        },
+        {
+            "src": "/common.bdat#ITM_FavoriteList",
+            "src_column": "Type",
+            "target": "/common.bdat#BTL_PouchBuffSet",
+            "target_column": "$id"
+        },
+        {
+            "src": "/common.bdat#ITM_CrystalList",
+            "src_column": "BladeID",
+            "target": "/common.bdat#CHR_Bl",
+            "target_column": "$id",
+            "target_column_display": "Name"
+        }
+    ]
+}
