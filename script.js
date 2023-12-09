@@ -38,12 +38,12 @@ function PrintMurmurList(list) {
  
 class BDATcollator {
 
-	static RootPath = "tables/xc3_211_alldlc_hashed_edits";
+	static RootPath = "tables/xc2_210_base_hashed_edits";
 	static OutPath = "out/";
 	static AllLocalizations = ["/cn", "/fr", "/gb", "/ge", "/it", "/jp", "/kr", "/sp", "/tw"];
 	static LocalizationPath = "/gb";
 
-	static SheetLinksPath = "data/xc3_sheet_links.json";
+	static SheetLinksPath = "data/xc2_sheet_links.json";
 
 	static BDATTableSchemas = new Map();
 	static BDATSheets = new Map();
@@ -380,6 +380,7 @@ class BDATcollator {
 						target: replaces(link.target),
 						target_column: replaces(link.target_column)
 					};
+
 					// get everything else from the link
 					matchup = {...link, ...matchup};
 
@@ -415,6 +416,10 @@ class BDATcollator {
 
 		if (targetColumn == null) {
 			console.warn(`Target column (${matchup.target_column}) for ${matchup.src} -> ${matchup.target} not found`);
+			return;
+		}
+		if (targetColumnDisplay == null && IsNullOrWhitespace(matchup.target_column_display)) {
+			console.warn(`Target display column (${matchup.target_column}) for ${matchup.src} -> ${matchup.target} not found`);
 			return;
 		}
 
@@ -493,14 +498,14 @@ class BDATcollator {
 			});
 
 			if (targetIndex == -1) {
-				console.warn(`Match value for ${matchup.src} -> ${matchup.target} does not exist`);
+				console.warn(`Match value for ${matchup.src}|${matchup.src_column} -> ${matchup.target}|${matchup.target_column} does not exist`);
 				continue;
 			}
 
 			var targetValue = targetColumnDisplay[targetIndex];
 
 			if (targetValue == null) {
-				console.warn(`Target value for ${matchup.src} to ${matchup.target} not found`);
+				console.warn(`Target value for ${matchup.src}|${matchup.src_column} -> ${matchup.target}|${matchup.target_column} not found`);
 				continue;
 			}
 
@@ -650,7 +655,7 @@ class BDATcollator {
 	await BDATcollator.GetData();
 
 	// get .bschema files
-	await BDATcollator.GetTableSchemas();
+	//await BDATcollator.GetTableSchemas();
 	{
 		/*var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + "/mnu.bschema");
 		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);
@@ -662,10 +667,10 @@ class BDATcollator {
 		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);
 		var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + BDATcollator.LocalizationPath + "/game/system.bschema");
 		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);*/
-		/*var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + "/common.bschema");
+		var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + "/common.bschema");
 		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);
 		var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + BDATcollator.LocalizationPath + "/common_ms.bschema");
-		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);*/
+		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);
 	}
 
 	// create index page
