@@ -514,6 +514,16 @@
             "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_collectionitemtype",
             "ignore_zero_values": true,
             "value_offset": -3
+        },
+        {
+            "src": "/common.bdat#CHR_EnArrange",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#fld_enemyname"
+        },
+        {
+            "src": "/common.bdat#MNU_Msg_Attr",
+            "src_column": "name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_attr_ms"
         }
     ],
     "links": [
@@ -542,6 +552,34 @@
             "target": "/common.bdat#CHR_Bl",
             "target_column": "$id",
             "target_column_display": "Name"
+        },
+        {
+            "src": "/common.bdat#CHR_EnArrange",
+            "src_column": "ParamID",
+            "target": "/common.bdat#CHR_EnParam",
+            "target_column": "$id",
+            "target_column_display": "Debug_Name"
+        },
+        {
+            "src": "/common.bdat#CHR_EnArrange",
+            "src_column": "EnemyBladeID",
+            "target": "/common.bdat#CHR_EnArrange",
+            "target_column": "$id"
+        },
+        {
+            "src": "/common.bdat#CHR_EnArrange",
+            "src_column": "BladeID",
+            "target": "/common.bdat#CHR_Bl",
+            "target_column": "$id",
+            "target_column_display": "Name"
+        },
+        {
+            "src": "/common.bdat#CHR_EnArrange",
+            "src_column": "BladeAtr",
+            "target": "/common.bdat#MNU_Msg_Attr",
+            "target_column": "$id",
+            "target_column_display": "name",
+            "ignore_zero_values": true
         }
     ]
 }

@@ -38,13 +38,12 @@ function PrintMurmurList(list) {
  
 class BDATcollator {
 
-	static RootPath = "tables/xc2_210_base_hashed_edits";
+	static RootPath = "tables/xc3_211_alldlc_hashed_edits";
 	static OutPath = "out/";
+	static AllLocalizations = ["/cn", "/fr", "/gb", "/ge", "/it", "/jp", "/kr", "/sp", "/tw"];
 	static LocalizationPath = "/gb";
 
-	static IgnoreLocalizations = ["/cn", "/fr", "/gb", "/ge", "/it", "/jp", "/kr", "/sp", "/tw"];
-
-	static SheetLinksPath = "data/xc2_sheet_links.json";
+	static SheetLinksPath = "data/xc3_sheet_links.json";
 
 	static BDATTableSchemas = new Map();
 	static BDATSheets = new Map();
@@ -92,8 +91,8 @@ class BDATcollator {
 		}
 		catch (e) { console.error(e); }
 
-		// remove our localization path from the ignore list, we kinda need that
-		this.IgnoreLocalizations = this.IgnoreLocalizations.filter(x => x !== this.LocalizationPath);
+		// remove our localization path from an ignore list
+		this.IgnoreLocalizations = this.AllLocalizations.filter(x => x !== this.LocalizationPath);
 
 		this.HashLookup = new Map();
 		if (fs.existsSync("data/xb3_hash_values.txt")) {
@@ -217,6 +216,16 @@ class BDATcollator {
 		}
 	}
 
+	static GetColumnMapFromSheet(sheet) {
+		var map = new Map();
+		map.set("$id", sheet.rows.map(x => x["$id"]));
+		for (const column of sheet.schema) {
+			var data = sheet.rows.map(x => x[column.name]);
+			map.set(column.name, data);
+		}
+		return map;
+	}
+
 	// CLEANUP STAGE 1: HASHES
 	// bdat-rs takes care of hashes in the column names, but not in values!
 	// we want to be able to retain both, so let's do a bit of cleanup here
@@ -299,145 +308,238 @@ class BDATcollator {
 	}
 
 	// CLEANUP STAGE 3: REFERENCES
-	// references are not a concept native to bdat tables, everything is matched "by hand"
-	// so, we need to define all links to other tables through a lookup table
-	// occaisionally, we need criteria to further match.
-	static CleanupSheetsStage3(links, defaultMatchup) {
+	// ink source sheets and their columns can be regular expressions,
+	// which makes a big old many->many relationship. let's get every matchup we can
+	// then send it to a dedicated matching method.
+	static CleanupSheetsStage3(links, defaultLink) {
 		if (links == null)
 			return;
 
-		for (let matchup of links) {
-			if (!this.BDATSheets.has(matchup.src) || !this.BDATSheets.has(matchup.target)) {
-				//console.debug("missing a referenced sheet", "source?", this.BDATSheets.has(matchup.src), "target?", this.BDATSheets.has(matchup.target));
+		const ALL_SHEETS = Array.from(this.BDATSheets.keys());
+		for (let link of links) {
+			// if we have a default matchup, apply its properties
+			if (defaultLink != null)
+				link = {...defaultLink, ...link};
+
+			//console.debug("new link", `${link.src}|${link.src_column} -> ${link.target}|${link.target_column}`);
+
+			// first, we need a list of each of our source sheets (any that match)
+			// the source is potentially a regular expression
+			let sourceSheets = [];
+			if (link.src.startsWith('/') && link.src.endsWith('/')) {
+				// remove the surrounding slashes
+				let source = link.src.substring(1, link.src.length - 1);
+				let filtered = ALL_SHEETS.filter(x => x.match(source));
+				let regexObject = new RegExp(source);
+				filtered.map(x => sourceSheets.push(x.match(regexObject)));
+			}
+			else {
+				// treating as not a regular expression, so only one source sheet
+				if (ALL_SHEETS.includes(link.src))
+					sourceSheets = [[link.src]];
+			}
+
+			for (let idx in sourceSheets) {
+				for (let i = 0; i < sourceSheets[idx].length; i++) {
+					if (sourceSheets[idx][i] == null)
+						sourceSheets[idx][i] = "";
+				}
+			}
+
+			// the source tables are assured to exist from here on out
+			
+			//console.debug("all source sheets:", sourceSheets);
+			for (const sheetMatch of sourceSheets) {
+				const ALL_COLUMNS = this.BDATSheets.get(sheetMatch[0]).schema.map(x => x.name);
+				
+				// src_column may also be a regular expression
+				// (we're checking here as columns can be different between sheets)
+				let sourceColumns = [];
+				if (link.src_column.startsWith('/') && link.src_column.endsWith('/')) {
+					let column = link.src_column.substring(1, link.src_column.length - 1);
+					let filtered = ALL_COLUMNS.filter(x => x.match(column));
+					let regexObject = new RegExp(column);
+					filtered.map(x => sourceColumns.push(x.match(regexObject)));
+				}
+				else {
+					// treating as not a regular expression, so only one column
+					if (ALL_COLUMNS.includes(link.src_column))
+						sourceColumns = [[link.src_column]];
+				}
+
+				for (const columnMatch of sourceColumns) {
+					function replaces(str) {
+						str = str.replace("$S1", sheetMatch[1]).replace("$S2", sheetMatch[2]).replace("$S3", sheetMatch[3]);
+						str = str.replace("$C0", columnMatch[0]).replace("$C1", columnMatch[1]).replace("$C2", columnMatch[2]).replace("$C3", columnMatch[3]);
+						return str;
+					}
+
+					let matchup = {
+						src: sheetMatch[0],
+						src_column: columnMatch[0],
+						target: replaces(link.target),
+						target_column: replaces(link.target_column)
+					};
+					// get everything else from the link
+					matchup = {...link, ...matchup};
+
+					// do the matchup from here
+					this.CleanupSheetsStage3_DoMatch(matchup);
+				}
+			}
+		}
+	}
+
+	// this is what actually does the matching. we're sure that this is
+	// a 1-1 match at this point so we can ignore most checking safely
+	// occaisionally, we'll need criteria to further the match.
+	static CleanupSheetsStage3_DoMatch(matchup) {
+		//console.debug("processing matchup", matchup);
+
+		// do standard shit here
+		var srcSheet = this.BDATSheets.get(matchup.src);
+		var targetSheet = this.BDATSheets.get(matchup.target);
+
+		if (srcSheet == null) {
+			console.warn(`Source sheet for ${matchup.src} -> ${matchup.target} not found`);
+			return;
+		}
+		if (targetSheet == null) {
+			console.warn(`Target sheet for ${matchup.src} -> ${matchup.target} not found`);
+			return;
+		}
+
+		const srcColumn = this.GetColumnMapFromSheet(srcSheet).get(matchup.src_column);
+		const targetColumn = this.GetColumnMapFromSheet(targetSheet).get(matchup.target_column);
+		const targetColumnDisplay = IsNullOrWhitespace(matchup.target_column_display) ? targetColumn : this.GetColumnMapFromSheet(targetSheet).get(matchup.target_column_display);
+
+		if (targetColumn == null) {
+			console.warn(`Target column (${matchup.target_column}) for ${matchup.src} -> ${matchup.target} not found`);
+			return;
+		}
+
+		// for tables that start at something like 1001
+		var targetFirstIndex = targetSheet.rows[0]["$id"];
+
+		for (var i = 0; i < srcColumn.length; i++) {
+			var srcValue = srcColumn[i];
+			var srcBasicValue = srcValue;
+
+			// first, if we're matching against 0, then that's probably an empty reference
+			// don't skip if we explicitly ignore zero values
+			if (srcValue == 0 && !matchup.ignore_zero_values) {
+				if (!matchup.hide_zero_values) {
+					srcSheet.rows[i][matchup.src_column] = "";
+				}
 				continue;
 			}
 
-			// if we have a default matchup, apply its properties
-			if (defaultMatchup != null)
-				matchup = {...defaultMatchup, ...matchup};
+			// next, let's check the criteria
+			if (matchup.criteria != null) {
+				var failedCriteria = false;
 
-			var srcSheet = this.BDATSheets.get(matchup.src);
-			var targetSheet = this.BDATSheets.get(matchup.target);
+				// set columns if they haven't been set
+				for (var crit of matchup.criteria) {
+					crit.column = IsNullOrWhitespace(crit.column) ? matchup.src_column : crit.column;
+				}
 
-			// for tables that start at something like 1001
-			var targetFirstIndex = targetSheet.rows[0]["$id"];
+				function CheckCriteriaType(type, func) {
+					if (failedCriteria || matchup.criteria == null)
+						return;
 
-			for (var i = 0; i < srcSheet.rows.length; i++) {
-				var srcValue = srcSheet.rows[i][matchup.src_column];
-				var srcBasicValue = srcValue;
-
-				// first, if we're matching against 0, then that's probably an empty reference
-				// don't skip if we explicitly ignore zero values
-				if (srcValue == 0 && !matchup.ignore_zero_values)
-					continue;
-
-				// next, let's check the criteria
-				if (matchup.criteria != null) {
-					var failedCriteria = false;
-
-					// set columns if they haven't been set
-					for (var crit of matchup.criteria) {
-						crit.column = IsNullOrWhitespace(crit.column) ? matchup.src_column : crit.column;
-					}
-
-					function CheckCriteriaType(type, func) {
-						if (failedCriteria || matchup.criteria == null)
-							return;
-
-						for (const crit of matchup.criteria.filter((e) => e.type == type)) {
-							if (!func(crit)) {
-								failedCriteria = true;
-								//console.debug(`Match for ${matchup.src}[${i}] to ${matchup.target} failed ${type} criteria`);
-							}
+					for (const crit of matchup.criteria.filter((e) => e.type == type)) {
+						if (!func(crit)) {
+							failedCriteria = true;
+							//console.debug(`Match for ${matchup.src}[${i}] to ${matchup.target} failed ${type} criteria`);
 						}
 					}
-
-					CheckCriteriaType("src_column_above", (crit) => { return srcSheet.rows[i][crit.column] > crit.value; });
-					CheckCriteriaType("src_column_below", (crit) => { return srcSheet.rows[i][crit.column] < crit.value; });
-					CheckCriteriaType("src_column_equals", (crit) => { return srcSheet.rows[i][crit.column] == crit.value; });
-					CheckCriteriaType("src_column_between", (crit) => { return srcSheet.rows[i][crit.column] > crit.above && srcSheet.rows[i][crit.column] < crit.below; });
-
-					// if we fail, onto the next
-					if (failedCriteria)
-						continue;
 				}
 
-				// if this is already a value somehow, we want the actual value
-				if (IsObject(srcValue)) {
-					if (!IsNullOrWhitespace(srcValue.raw_value))
-						srcBasicValue = srcValue.raw_value;
-					else
-						continue;
-				}
+				CheckCriteriaType("src_column_above", (crit) => { return srcColumn[i] > crit.value; });
+				CheckCriteriaType("src_column_below", (crit) => { return srcColumn[i] < crit.value; });
+				CheckCriteriaType("src_column_equals", (crit) => { return srcColumn[i] == crit.value; });
+				CheckCriteriaType("src_column_between", (crit) => { return srcColumn[i] > crit.above && srcColumn[i] < crit.below; });
 
-				// add any offsets here
-				if (Number.isInteger(srcBasicValue) && Number.isInteger(matchup.value_offset)) {
-					srcBasicValue += matchup.value_offset;
-					// update object if needed
-					if (IsObject(srcValue))
-						srcValue.raw_value = srcBasicValue;
-					else
-						srcValue = srcBasicValue;
-				}
-
-				var targetIndex = targetSheet.rows.findIndex((e) => {
-					// look for exact matches or obj.value matches
-					if (e[matchup.target_column] == srcBasicValue)
-						return true;
-					else if (IsObject(e[matchup.target_column]))
-						return e[matchup.target_column].raw_value == srcBasicValue;
-				});
-
-				if (targetIndex == -1) {
-					console.warn(`Match for ${matchup.src} to ${matchup.target} not found`);
+				// if we fail, onto the next
+				if (failedCriteria)
 					continue;
-				}
+			}
 
-				var targetColumn = IsNullOrWhitespace(matchup.target_column_display) ? matchup.target_column : matchup.target_column_display;
-				var targetValue = targetSheet.rows[targetIndex][targetColumn];
-
-				if (targetValue == null) {
-					console.warn(`Target value for ${matchup.src} to ${matchup.target} not found`);
+			// if this is already a value somehow, we want the actual value
+			if (IsObject(srcValue)) {
+				if (!IsNullOrWhitespace(srcValue.raw_value))
+					srcBasicValue = srcValue.raw_value;
+				else
 					continue;
-				}
+			}
 
-				var matchLink = `/${this.OutPath}${matchup.target.replace("#", "/")}.html#${targetFirstIndex + targetIndex}`.replace("//", "/");
+			// add any offsets here
+			if (Number.isInteger(srcBasicValue) && Number.isInteger(matchup.value_offset)) {
+				srcBasicValue += matchup.value_offset;
+				// update object if needed
+				if (IsObject(srcValue))
+					srcValue.raw_value = srcBasicValue;
+				else
+					srcValue = srcBasicValue;
+			}
 
-				if (!IsObject(srcValue)) {
-					srcValue = { "raw_value": srcValue };
-				}
+			var targetIndex = targetColumn.findIndex((e) => {
+				// look for exact matches or obj.value matches
+				if (e == srcBasicValue)
+					return true;
+				else if (IsObject(e))
+					return e.raw_value == srcBasicValue;
+				return false;
+			});
 
-				// match values can be odd
-				// they can either be the result of a hash,
-				// or they can be a previous match value. let's check
+			if (targetIndex == -1) {
+				console.warn(`Match value for ${matchup.src} -> ${matchup.target} does not exist`);
+				continue;
+			}
 
-				//srcValue.match_value = targetValue.match_value == null ? targetValue : targetValue.match_value;
-				var matchValue = null;
-				if (targetValue.match_value == null) {
-					if (IsObject(targetValue)) {
-						// this may be a Joker's Trick. is this a hash?
-						if (targetValue.hash != null)
-							// it is! let's take its hash value
-							matchValue = targetValue.hash_value;
-						else
-							console.error("target value is an object, but does not have a match_value or hash.");
-					}
-					else {
-						// just a plain value, I suppose
-						matchValue = targetValue;
-					}
+			var targetValue = targetColumnDisplay[targetIndex];
+
+			if (targetValue == null) {
+				console.warn(`Target value for ${matchup.src} to ${matchup.target} not found`);
+				continue;
+			}
+
+			var matchLink = `/${this.OutPath}${matchup.target.replace("#", "/")}.html#${targetFirstIndex + targetIndex}`.replace("//", "/");
+
+			if (!IsObject(srcValue)) {
+				srcValue = { "raw_value": srcValue };
+			}
+
+			// match values can be odd
+			// they can either be the result of a hash,
+			// or they can be a previous match value. let's check
+
+			var matchValue = null;
+			if (targetValue.match_value == null) {
+				if (IsObject(targetValue)) {
+					// this may be a Joker's Trick. is this a hash?
+					if (targetValue.hash != null)
+						// it is! let's take its hash value
+						matchValue = targetValue.hash_value;
+					else
+						console.error("target value is an object, but does not have a match_value or hash.");
 				}
 				else {
-					// just take its match value
-					matchValue = targetValue.match_value;
+					// just a plain value, I suppose
+					matchValue = targetValue;
 				}
-
-				srcValue.match_value = matchValue;
-				srcValue.match_link = matchLink;
-				srcValue.match_hints = matchup.hints;
-
-				srcSheet.rows[i][matchup.src_column] = srcValue;
 			}
+			else {
+				// just take its match value
+				matchValue = targetValue.match_value;
+			}
+
+			srcValue.match_value = matchValue;
+			srcValue.match_link = matchLink;
+			srcValue.match_hints = matchup.hints;
+
+			// actually apply to the sheet
+			srcSheet.rows[i][matchup.src_column] = srcValue;
 		}
 	}
 
@@ -548,24 +650,26 @@ class BDATcollator {
 	await BDATcollator.GetData();
 
 	// get .bschema files
-	//await BDATcollator.GetTableSchemas();
+	await BDATcollator.GetTableSchemas();
 	{
-		/*var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + "/sys.bschema");
+		/*var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + "/mnu.bschema");
 		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);
-		var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + "/fld.bschema");
+		var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + "/sys.bschema");
 		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);
-		var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + "/prg.bschema");
+		var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + "/map.bschema");
+		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);
+		var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + BDATcollator.LocalizationPath + "/game/menu.bschema");
 		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);
 		var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + BDATcollator.LocalizationPath + "/game/system.bschema");
 		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);*/
-		var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + "/common.bschema");
+		/*var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + "/common.bschema");
 		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);
 		var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + BDATcollator.LocalizationPath + "/common_ms.bschema");
-		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);
+		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);*/
 	}
 
 	// create index page
-	//await BDATcollator.CreateRootIndex();
+	await BDATcollator.CreateRootIndex();
 
 	// get tables and their sheets
 	await BDATcollator.GetSheetsFromTableSchemas();
@@ -588,6 +692,8 @@ class BDATcollator {
 	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/fld.bdat#FLD_ObjList"));
 	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/fld.bdat#FLD_NpcResource"));
 	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/prg.bdat#157937BA"));
+	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/mnu.bdat#MNU_EventTheater_scn"));
+	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/mnu.bdat#MNU_EventTheater_scn_DLC04"));
 	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get(BDATcollator.LocalizationPath + "/game/system.bdat#msg_player_name"));
 	// 2
 	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/common.bdat#CHR_Dr"));
@@ -596,4 +702,6 @@ class BDATcollator {
 	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get(BDATcollator.LocalizationPath + "/common_ms.bdat#chr_dr_ms"));
 	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get(BDATcollator.LocalizationPath + "/common_ms.bdat#chr_bl_ms"));
 	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/common.bdat#MNU_DlcGift"));
+
+	console.log("Finished!");
 })()

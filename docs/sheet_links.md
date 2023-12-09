@@ -15,6 +15,8 @@ Links are very simple on their own, and have a few variables:
 - `ignore_zero_values` - ignores the skipping of zero values. In most cases 0 is an empty value, but not for all.
 - `value_offset` - defines an offset for number values.
 
+`src` can be a regular expression, denoted by the start and end of the string being a `/`. This creates a many-to-many relationship between the source and target sheets. Up to 3 selection groups can be chosen, and then used in the target sheet/column with `$S1`-`$S3`. `src_column` is a similar story, where multiple columns can be selected, and matches are exposed as `$C0`-`$C3`, where `$C0` is just the column name.
+
 Links have a few kinds of critera:
 - `src_column_above` - takes a `column` and `value` to compare.
 - `src_column_below` - takes a `column` and `value` to compare.

@@ -1,12 +1,28 @@
 {
-    "links": [
+    "localizations": [
         {
             "src": "/sys.bdat#CHR_PC",
             "src_column": "Name",
-            "target": "{{LOCALIZATION_PATH}}/game/system.bdat#msg_player_name",
-            "target_column": "$id",
-            "target_column_display": "name"
+            "target": "{{LOCALIZATION_PATH}}/game/system.bdat#msg_player_name"
         },
+        {
+            "src": "/\\/mnu\\.bdat#MNU_EventTheater_scn(.+)?/",
+            "src_column": "title",
+            "target": "{{LOCALIZATION_PATH}}/game/menu.bdat#msg_mnu_event_name"
+        },
+        {
+            "src": "/\\/(.+)\\.bdat#(.+)_GMK_Location/",
+            "src_column": "LocationName",
+            "target": "{{LOCALIZATION_PATH}}/game/system.bdat#msg_location_name"
+        },
+        {
+            "src": "/sys.bdat#SYS_MapList",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}/game/system.bdat#msg_location_name"
+        }
+    ],
+    "links": [
+        
         {
             "src": "/sys.bdat#CHR_PC",
             "src_column": "MealMountObj",
@@ -78,6 +94,19 @@
                     "value": 4
                 }
             ]
+        },
+        {
+            "src": "/\\/(.+)\\.bdat#(.+)_GMK_Location/",
+            "src_column": "MapJumpID",
+            "target": "/sys.bdat#SYS_MapJumpList",
+            "target_column": "$id"
+        },
+        {
+            "src": "/sys.bdat#SYS_MapJumpList",
+            "src_column": "MapID",
+            "target": "/sys.bdat#SYS_MapList",
+            "target_column": "$id",
+            "target_column_display": "Name"
         }
     ]    
 }
