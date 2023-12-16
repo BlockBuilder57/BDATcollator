@@ -5,7 +5,7 @@ const murmurHash3 = require("imurmurhash");
 const { match } = require("node:assert");
 
 function IsNullOrWhitespace( input ) {
-	return !input || !input.trim();
+	return !(typeof input === 'string') || !input || !input.trim();
 }
 
 function IsObject(obj) {
@@ -275,9 +275,9 @@ class BDATcollator {
 	// this is a helper stage to stage 3. templates are used when repeating table indices would just get too obtuse
 	// templates become incredibly useful with, for example, items in 2, as their references are split across many, many tables
 	// instead of having 24 duplicates in the sheet links, we can just declare a template with 24 children, then apply the template to the link
-	static CleanupSheetsStage2() {
-		for (var i = 0; i < this.SheetLinks.links.length; i++) {
-			const matchup = this.SheetLinks.links[i];
+	static CleanupSheetsStage2(links) {
+		for (var i = 0; i < links.length; i++) {
+			const matchup = links[i];
 
 			// continue if there is no template specified
 			if (matchup.template == null || IsNullOrWhitespace(matchup.template))
@@ -292,18 +292,19 @@ class BDATcollator {
 			const template = this.SheetLinks.templates[matchup.template];
 
 			// delete this matchup from the array
-			this.SheetLinks.links.splice(i, 1);
+			links.splice(i, 1);
 
 			for (var j = 0; j < template.length; j++) {
 				let merged = {...matchup, ...template[j]};
 				//delete merged.template;
 
 				// add to links
-				this.SheetLinks.links.splice(i, 0, merged);
+				links.splice(i, 0, merged);
 			}
 
 			// skip ahead to the next matchup
-			i += j;
+			if (j > 0)
+				i += j - 1;
 		}
 	}
 
@@ -321,7 +322,7 @@ class BDATcollator {
 			if (defaultLink != null)
 				link = {...defaultLink, ...link};
 
-			//console.debug("new link", `${link.src}|${link.src_column} -> ${link.target}|${link.target_column}`);
+			//console.debug("new link", `${link.src}:${link.src_column} -> ${link.target}:${link.target_column}`);
 
 			// first, we need a list of each of our source sheets (any that match)
 			// the source is potentially a regular expression
@@ -339,6 +340,7 @@ class BDATcollator {
 					sourceSheets = [[link.src]];
 			}
 
+			// make any empty matches a blank string, not undefined
 			for (let idx in sourceSheets) {
 				for (let i = 0; i < sourceSheets[idx].length; i++) {
 					if (sourceSheets[idx][i] == null)
@@ -369,6 +371,8 @@ class BDATcollator {
 
 				for (const columnMatch of sourceColumns) {
 					function replaces(str) {
+						if (IsNullOrWhitespace(str))
+							throw "tried to replace on null string";
 						str = str.replace("$S1", sheetMatch[1]).replace("$S2", sheetMatch[2]).replace("$S3", sheetMatch[3]);
 						str = str.replace("$C0", columnMatch[0]).replace("$C1", columnMatch[1]).replace("$C2", columnMatch[2]).replace("$C3", columnMatch[3]);
 						return str;
@@ -395,7 +399,7 @@ class BDATcollator {
 	// a 1-1 match at this point so we can ignore most checking safely
 	// occaisionally, we'll need criteria to further the match.
 	static CleanupSheetsStage3_DoMatch(matchup) {
-		//console.debug("processing matchup", matchup);
+		console.debug("processing matchup", matchup);
 
 		// do standard shit here
 		var srcSheet = this.BDATSheets.get(matchup.src);
@@ -414,17 +418,22 @@ class BDATcollator {
 		const targetColumn = this.GetColumnMapFromSheet(targetSheet).get(matchup.target_column);
 		const targetColumnDisplay = IsNullOrWhitespace(matchup.target_column_display) ? targetColumn : this.GetColumnMapFromSheet(targetSheet).get(matchup.target_column_display);
 
+		if (srcColumn == null) {
+			console.warn(`Source column (${matchup.src_column}) for ${matchup.src} -> ${matchup.target} not found`);
+			return;
+		}
 		if (targetColumn == null) {
 			console.warn(`Target column (${matchup.target_column}) for ${matchup.src} -> ${matchup.target} not found`);
 			return;
 		}
-		if (targetColumnDisplay == null && IsNullOrWhitespace(matchup.target_column_display)) {
-			console.warn(`Target display column (${matchup.target_column}) for ${matchup.src} -> ${matchup.target} not found`);
+		if (targetColumnDisplay == null) {
+			console.warn(`Target display column (${matchup.target_column_display}) for ${matchup.src} -> ${matchup.target} not found`);
 			return;
 		}
 
 		// for tables that start at something like 1001
 		var targetFirstIndex = targetSheet.rows[0]["$id"];
+		var srcFirstIndex = srcSheet.rows[0]["$id"];
 
 		for (var i = 0; i < srcColumn.length; i++) {
 			var srcValue = srcColumn[i];
@@ -432,11 +441,11 @@ class BDATcollator {
 
 			// first, if we're matching against 0, then that's probably an empty reference
 			// don't skip if we explicitly ignore zero values
-			if (srcValue == 0 && !matchup.ignore_zero_values) {
-				if (!matchup.hide_zero_values) {
+			if (srcValue == 0) {
+				if (matchup.hide_zero_values)
 					srcSheet.rows[i][matchup.src_column] = "";
-				}
-				continue;
+				if (!matchup.ignore_zero_values)
+					continue;
 			}
 
 			// next, let's check the criteria
@@ -498,18 +507,21 @@ class BDATcollator {
 			});
 
 			if (targetIndex == -1) {
-				console.warn(`Match value for ${matchup.src}|${matchup.src_column} -> ${matchup.target}|${matchup.target_column} does not exist`);
+				if (!matchup.ignore_zero_values)
+					console.warn(`Match value for ${matchup.src}:${matchup.src_column} -> ${matchup.target}:${matchup.target_column} does not exist`);
 				continue;
 			}
+
+			const targetTrueIndex = targetFirstIndex + targetIndex;
 
 			var targetValue = targetColumnDisplay[targetIndex];
 
 			if (targetValue == null) {
-				console.warn(`Target value for ${matchup.src}|${matchup.src_column} -> ${matchup.target}|${matchup.target_column} not found`);
+				console.warn(`Target value for ${matchup.src}:${matchup.src_column} -> ${matchup.target}:${matchup.target_column} not found`);
 				continue;
 			}
 
-			var matchLink = `/${this.OutPath}${matchup.target.replace("#", "/")}.html#${targetFirstIndex + targetIndex}`.replace("//", "/");
+			var matchLink = `/${this.OutPath}${matchup.target.replace("#", "/")}.html#${targetTrueIndex}`.replace("//", "/");
 
 			if (!IsObject(srcValue)) {
 				srcValue = { "raw_value": srcValue };
@@ -545,6 +557,20 @@ class BDATcollator {
 
 			// actually apply to the sheet
 			srcSheet.rows[i][matchup.src_column] = srcValue;
+
+			// add the reference to the target sheet's references
+			// (shown in the Referenced by column)
+			if (targetSheet.references == null)
+				targetSheet.references = {};
+			if (targetSheet.references[targetTrueIndex] == null)
+				targetSheet.references[targetTrueIndex] = [];
+
+			targetSheet.references[targetTrueIndex].push({
+				sheet: matchup.src.split('#')[1],
+				value: matchValue,
+				column: srcFirstIndex + i,
+				link: `/${this.OutPath}${matchup.src.replace("#", "/")}.html#${srcFirstIndex + i}`.replace("//", "/")
+			});
 		}
 	}
 
@@ -553,25 +579,45 @@ class BDATcollator {
 			return;
 
 		console.debug("creating page for", sheet.parent_table + "#" + sheet.name);
+		//console.debug("its references:", sheet.references);
 
 		let columnType = new Map();
 		for (const column of sheet.schema) {
 			columnType.set(column.name, column.type);
 		}
 
-		let table = "<table class='sortable'>";
+		let table = `<table class="sortable">\n`;
 
-		table += "<thead><tr id='header'>";
-		table += "<th>idx</th>";
+		table += `<thead><tr id="header">`;
+		table += `<th class="columnMeta no-sort">Ref'd. by</th>\n`;
+		table += `<th aria-sort="ascending">$id</th>\n`;
 		for (const column of sheet.schema) {
 			// can't wrap this because of the sorting arrow :(
-			table += `<th>${htmlEntities(column.name)}<span class="columnType hidden"><br>${this.BDATTypes[column.type]} - 0x${column.type.toString(16).toUpperCase()}</span></th>`;
+			table += `<th>${htmlEntities(column.name)}<span class="columnType hidden"><br>${this.BDATTypes[column.type]} - 0x${column.type.toString(16).toUpperCase()}</span></th>\n`;
 		}
-		table += "</tr></thead>";
+		table += "</tr></thead>\n";
 
-		table += "<tbody>";
+		table += "<tbody>\n";
 		for (const row of sheet.rows) {
-			table += `<tr id=${row["$id"]}>`;
+			const rowId = row["$id"];
+			table += `<tr id=${rowId}>`;
+
+			// references
+			table += `<td class="cellMeta">`;
+			if (sheet.references != null) {
+				let refs = sheet.references[rowId];
+				if (refs != null) {
+					table += "<details>";
+					table += `<summary>${refs.length} refs</summary>\n`;
+					for (const theref of refs) {
+						table += `<a href="${theref.link}" title="${theref.value}">${theref.sheet}:${theref.column}</a>\n`;
+					}
+					table += "</details>"
+				}
+			}
+			table += "</td>";
+
+			// actual columns
 			for (let [key, display] of Object.entries(row)) {
 				var classes = [];
 				var needsWrapper = false;
@@ -622,17 +668,17 @@ class BDATcollator {
 				if (needsWrapper)
 					display = `<div class="cellWrapper">${display}</div>`;
 
-				var classesText = "";
+				var attributesText = "";
 				if (classes.length != 0)
-					classesText = ` class="${classes.join(" ")}"`;
+					attributesText = ` class="${classes.join(" ")}"`;
 
-				table += `<td${classesText}>${display}</td>`;
+				table += `<td${attributesText}>${display}</td>`;
 			}
-			table += "</tr>";
+			table += "</tr>\n";
 		}
-		table += "</tbody>";
+		table += "</tbody>\n";
 	
-		table += "</table>";
+		table += "</table>\n";
 
 		const outPath = this.OutPath + sheet.parent_table + "/";
 	
@@ -681,7 +727,8 @@ class BDATcollator {
 
 	// cleanup and processing
 	BDATcollator.CleanupSheetsStage1();
-	BDATcollator.CleanupSheetsStage2();
+	BDATcollator.CleanupSheetsStage2(BDATcollator.SheetLinks.localizations);
+	BDATcollator.CleanupSheetsStage2(BDATcollator.SheetLinks.links);
 	BDATcollator.CleanupSheetsStage3(BDATcollator.SheetLinks.localizations, {
 		"target_column": "$id",
         "target_column_display": "name",

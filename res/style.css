@@ -2,24 +2,39 @@
 	display: none;
 }
 
-.cellWrapper {
-	display: flex;
-	flex-direction: column;
+* {
+	font-family: 'M+1Code Nerd Font', 'MS Gothic', 'Times New Roman', Times, serif;
 }
+
+section {
+	font-size: 14px;
+}
+
+/*
+** Table styling
+*/
 
 .columnType {
 	color: lightgray;
 }
 
+.cellWrapper {
+	display: flex;
+	flex-direction: column;
+}
+
 .hashCell {
 	font-family: monospace;
 }
-
 .hashValue {
 	font-style: italic;
 }
-
 .localizationCell {
 	color: var(--td-color);
 	text-decoration: underline dotted;
+}
+
+table.sortable > thead > tr#header > th.columnMeta,
+table.sortable > tbody > tr > td.cellMeta {
+	border-right: 3px double black;
 }

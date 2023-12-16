@@ -1,12 +1,13 @@
 @charset "UTF-8";
-.sortable thead th:not(.no-sort) {
-	cursor: pointer;
+.sortable thead th {
 	position: sticky;
 	top: -1px;
 }
+.sortable thead th:not(.no-sort) {
+	cursor: pointer;
+}
 .sortable thead th:not(.no-sort)::after, .sortable thead th:not(.no-sort)::before {
-	transition: color 0.1s ease-in-out;
-	font-size: 1.2em;
+	transition: color 0.075s ease-in-out;
 	color: transparent;
 }
 .sortable thead th:not(.no-sort)::after {
@@ -65,9 +66,10 @@
 }
 .sortable td {
 	color: var(--td-color);
+	word-break: keep-all;
 }
 
-table,th,td {
+table, th, td {
 	border: 1px solid black;
 	border-collapse: collapse;
 }

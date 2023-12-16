@@ -220,17 +220,6 @@
                         "below": 61000
                     }
                 ]
-            },
-            {
-                "target": "/common.bdat#ITM_EtherCrystal",
-                "target_column": "$id",
-                "criteria": [
-                    {
-                        "type": "src_column_between",
-                        "above": 61000,
-                        "below": 62000
-                    }
-                ]
             }
         ]
     },
@@ -246,9 +235,27 @@
             "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#chr_dr_ms"
         },
         {
+            "src": "/\\/common\\.bdat#CHR_(Dr|Bl)/",
+            "src_column": "/FavoriteCategory([0-9]+)/",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_favorite_category",
+            "ignore_zero_values": true,
+            "hide_zero_values": true,
+            "value_offset": -11
+        },
+        {
+            "src": "/common.bdat#CHR_Ir",
+            "src_column": "TeamName",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#chr_dr_ms"
+        },
+        {
             "src": "/common.bdat#FLD_maplist",
             "src_column": "nameID",
             "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#fld_mapinfo"
+        },
+        {
+            "src": "/common.bdat#FLD_FieldSkillList",
+            "src_column": "/Name|Caption/",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#fld_fieldskilltxt"
         },
         {
             "src": "/\\/common\\.bdat#ITM_(.+)/",
@@ -407,9 +414,78 @@
             "src": "/common.bdat#MNU_Msg_Attr",
             "src_column": "name",
             "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_attr_ms"
+        },
+        {
+            "src": "/common.bdat#MNU_Msg_Gender",
+            "src_column": "name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_ms"
+        },
+        {
+            "src": "/common.bdat#MNU_Msg_Race",
+            "src_column": "name",
+            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_ms"
         }
     ],
     "links": [
+        {
+            "src": "/common.bdat#CHR_Bl",
+            "src_column": "QuestRace",
+            "target": "/common.bdat#MNU_Msg_Race",
+            "target_column": "$id",
+            "target_column_display": "name",
+            "ignore_zero_values": true
+        },
+        {
+            "src": "/common.bdat#CHR_Bl",
+            "src_column": "/FSkill([0-9]+)/",
+            "target": "/common.bdat#FLD_FieldSkillList",
+            "target_column": "$id",
+            "target_column_display": "Name",
+            "ignore_zero_values": true,
+            "hide_zero_values": true
+        },
+        {
+            "src": "/common.bdat#CHR_Bl",
+            "src_column": "/(Arts|Skill|Fskill|Key)Achi([e]?)vement([0-9]?)/",
+            "target": "/common.bdat#FLD_AchievementSet",
+            "target_column": "$id",
+            "ignore_zero_values": true,
+            "hide_zero_values": true
+        },
+        {
+            "src": "/common.bdat#CHR_Dr",
+            "src_column": "IraParam",
+            "target": "/common.bdat#CHR_Ir",
+            "target_column": "$id"
+        },
+        {
+            "src": "/common.bdat#CHR_Dr",
+            "src_column": "/DefBlade([0-9]+)/",
+            "target": "/common.bdat#CHR_Bl",
+            "target_column": "$id",
+            "target_column_display": "Name"
+        },
+        {
+            "src": "/common.bdat#CHR_Dr",
+            "src_column": "DefAcce",
+            "template": "items",
+            "target_column_display": "Name"
+        },
+        {
+            "src": "/\\/common\\.bdat#CHR_(Dr|Bl)/",
+            "src_column": "/FavoriteItem([0-9]+)/",
+            "template": "items",
+            "target_column_display": "Name",
+            "hide_zero_values": true
+        },
+        {
+            "src": "/\\/common\\.bdat#CHR_(Dr|Bl)/",
+            "src_column": "Gender",
+            "target": "/common.bdat#MNU_Msg_Gender",
+            "target_column": "$id",
+            "target_column_display": "name",
+            "ignore_zero_values": true
+        },
         {
             "src": "/common.bdat#CHR_Ir",
             "src_column": "driverID",
@@ -469,6 +545,14 @@
             "target": "/common.bdat#MNU_Msg_Attr",
             "target_column": "$id",
             "target_column_display": "name"
+        },
+        {
+            "src": "/common.bdat#FLD_AchievementSet",
+            "src_column": "/AchievementID[0-9]/",
+            "target": "/common.bdat#FLD_AchievementList",
+            "target_column": "$id",
+            "ignore_zero_values": true,
+            "hide_zero_values": true
         }
     ]
 }
