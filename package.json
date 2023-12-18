@@ -1,5 +1,6 @@
 {
   "name": "BDATcollator",
+  "license": "MIT",
   "dependencies": {
     "imurmurhash": "^0.1.4"
   }
