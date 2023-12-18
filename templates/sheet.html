@@ -6,13 +6,15 @@
 		<link rel="stylesheet" href="/res/sortable-edit.css">
 		<script src="/res/details.js"></script>
 		<script src="http://cdn.jsdelivr.net/gh/tofsjonas/sortable@latest/sortable.min.js"></script>
+		<style id="cssColumnTypes"></style>
+		<style id="cssRawValues"></style>
 	</head>
 	<body>
 		<div id="pageWrapper">
 			<h1><span class="tableName">{{table_name}}#</span>{{sheet_name}}</h1>
 			<section>
 				<input type="checkbox" id="cbColumnTypes"><label for="cbColumnTypes">Show Column Types</label><br>
-				<input type="checkbox" id="cbHashValues"><label for="cbHashValues">Show Raw Hash Values</label><br>
+				<input type="checkbox" id="cbRawValues"><label for="cbRawValues">Show Raw Values</label><br>
 				{{sheet_table}}
 			</section>
 		</div>

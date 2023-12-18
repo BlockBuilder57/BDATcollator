@@ -600,12 +600,12 @@ class BDATcollator {
 
 				// make separate columns for each flag
 				for (const flagPart of column.flags) {
-					table += `<th class="columnFlag">${htmlEntities(flagPart.label)}<span class="columnType hidden"><br>Part of ${htmlEntities(column.name)}, ${this.BDATTypes[column.type]} - 0x${column.type.toString(16).toUpperCase()}<br>0b${flagPart.mask.toString(2).padStart(len, '0')}</span></th>\n`;
+					table += `<th class="columnFlag">${htmlEntities(flagPart.label)}<span class="columnType"><br>Part of ${htmlEntities(column.name)}, ${this.BDATTypes[column.type]} - 0x${column.type.toString(16).toUpperCase()}<br>0b${flagPart.mask.toString(2).padStart(len, '0')}</span></th>\n`;
 				}
 			}
 			else {
 				// can't wrap this because of the sorting arrow :(
-				table += `<th>${htmlEntities(column.name)}<span class="columnType hidden"><br>${this.BDATTypes[column.type]} - 0x${column.type.toString(16).toUpperCase()}</span></th>\n`;
+				table += `<th>${htmlEntities(column.name)}<span class="columnType"><br>${this.BDATTypes[column.type]} - 0x${column.type.toString(16).toUpperCase()}</span></th>\n`;
 			}
 		}
 		table += "</tr></thead>\n";
@@ -650,8 +650,11 @@ class BDATcollator {
 							let extraElements = "";
 		
 							// display linked value if we need it
-							if (cellData.match_value != null && cellData.match_value != "")
+							if (cellData.match_value != null && cellData.match_value != "") {
 								dispValue = htmlEntities(cellData.match_value);
+								extraElements += `<span class="cellRawValue">${cellData.raw_value}</span>`;
+								needsWrapper = true;
+							}
 		
 							if (columnType.get(key) == 9) {
 								classes.push("cellHash");
@@ -667,14 +670,14 @@ class BDATcollator {
 								if (!hashMissing) {
 									if (cellData.hash_value != null)
 										dispValue = htmlEntities(cellData.hash_value);
-									extraElements += `<span class="cellHashValue hidden">&lt;${cellData.hash.toString(16).toUpperCase().padStart(8, "0")}&gt;</span>`;
+									extraElements += `<span class="cellRawValue">&lt;${cellData.hash.toString(16).toUpperCase().padStart(8, "0")}&gt;</span>`;
 									needsWrapper = true;
 								}
 							}
 		
 							// put in a tag. optionally add a link
 							let tagValue = "<a";
-							tagValue += IsNullOrWhitespace(cellData.match_link) ? "" : ` href="${cellData.match_link}" title="${cellData.raw_value}"`;
+							tagValue += IsNullOrWhitespace(cellData.match_link) ? "" : ` href="${cellData.match_link}"`;
 							tagValue += cellData.match_hints instanceof Array ? ` class="${cellData.match_hints.join(" ")}"` : "";
 							tagValue += `>${dispValue}</a>`;
 							// but no empty elements
@@ -768,14 +771,14 @@ class BDATcollator {
 
 	// cleanup and processing
 	BDATcollator.CleanupSheetsStage1();
-	/*BDATcollator.CleanupSheetsStage2(BDATcollator.SheetLinks.localizations);
+	BDATcollator.CleanupSheetsStage2(BDATcollator.SheetLinks.localizations);
 	BDATcollator.CleanupSheetsStage2(BDATcollator.SheetLinks.links);
 	BDATcollator.CleanupSheetsStage3(BDATcollator.SheetLinks.localizations, {
 		"target_column": "$id",
         "target_column_display": "name",
 		"hints": ["cellLocalization"]
 	});
-	BDATcollator.CleanupSheetsStage3(BDATcollator.SheetLinks.links);*/
+	BDATcollator.CleanupSheetsStage3(BDATcollator.SheetLinks.links);
 
 	// create sheet pages
 	for (const sheet of BDATcollator.BDATSheets.values()) {

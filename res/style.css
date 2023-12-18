@@ -29,7 +29,7 @@ section {
 .cellHash {
 	font-family: monospace;
 }
-.cellHashValue {
+.cellRawValue {
 	font-style: italic;
 }
 .cellLocalization {
