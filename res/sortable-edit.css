@@ -48,6 +48,8 @@
 	--stripe-color: #e4e4e4;
 	--th-color: #fff;
 	--th-bg: #808080;
+	--th-bg-light: #A0A0A0;
+	--th-bg-dark: #606060;
 	--td-color: #000;
 	--td-on-stripe-color: #000;
 	border-spacing: 0;

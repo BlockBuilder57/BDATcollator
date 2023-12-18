@@ -592,8 +592,21 @@ class BDATcollator {
 		table += `<th class="columnMeta no-sort">Ref'd. by</th>\n`;
 		table += `<th aria-sort="ascending">$id</th>\n`;
 		for (const column of sheet.schema) {
-			// can't wrap this because of the sorting arrow :(
-			table += `<th>${htmlEntities(column.name)}<span class="columnType hidden"><br>${this.BDATTypes[column.type]} - 0x${column.type.toString(16).toUpperCase()}</span></th>\n`;
+			if (column.flags != null) {
+				// we are making an assumption here: flags will likely only be ints
+				// just get the numbers from the end to get our length
+				let len = this.BDATTypes[column.type].split("Int");
+				len = parseInt(len[len.length - 1]);
+
+				// make separate columns for each flag
+				for (const flagPart of column.flags) {
+					table += `<th class="columnFlag">${htmlEntities(flagPart.label)}<span class="columnType hidden"><br>Part of ${htmlEntities(column.name)}, ${this.BDATTypes[column.type]} - 0x${column.type.toString(16).toUpperCase()}<br>0b${flagPart.mask.toString(2).padStart(len, '0')}</span></th>\n`;
+				}
+			}
+			else {
+				// can't wrap this because of the sorting arrow :(
+				table += `<th>${htmlEntities(column.name)}<span class="columnType hidden"><br>${this.BDATTypes[column.type]} - 0x${column.type.toString(16).toUpperCase()}</span></th>\n`;
+			}
 		}
 		table += "</tr></thead>\n";
 
@@ -618,61 +631,89 @@ class BDATcollator {
 			table += "</td>";
 
 			// actual columns
-			for (let [key, display] of Object.entries(row)) {
-				var classes = [];
-				var needsWrapper = false;
+			for (let [key, cellData] of Object.entries(row)) {
+				var toIterate = ["temp"];
 
-				if (IsObject(display)) {
-					let dispValue = htmlEntities(display.raw_value);
-					let extraElements = "";
+				if (IsObject(cellData) && cellData.raw_value == null) {
+					// this is likely a flag. let's take each key and add it to toIterate
+					toIterate = Object.keys(cellData);
+				}
 
-					// display linked value if we need it
-					if (display.match_value != null && display.match_value != "")
-						dispValue = htmlEntities(display.match_value);
+				for (const field of toIterate) {
+					var classes = [];
+					var needsWrapper = false;
+					var display = "";
 
-					if (columnType.get(key) == 9) {
-						classes.push("hashCell");
-	
-						let hashMissing = display.hash_status == "missing";
-						let hashNull = display.hash_status == "null";
-
-						if (hashMissing)
-							classes.push("hashMissing");
-						else if (hashNull)
-							classes.push("hashNull");
+					if (field == "temp") {
+						if (IsObject(cellData)) {
+							let dispValue = htmlEntities(cellData.raw_value);
+							let extraElements = "";
+		
+							// display linked value if we need it
+							if (cellData.match_value != null && cellData.match_value != "")
+								dispValue = htmlEntities(cellData.match_value);
+		
+							if (columnType.get(key) == 9) {
+								classes.push("cellHash");
+			
+								let hashMissing = cellData.hash_status == "missing";
+								let hashNull = cellData.hash_status == "null";
+		
+								if (hashMissing)
+									classes.push("cellHashMissing");
+								else if (hashNull)
+									classes.push("cellHashNull");
+								
+								if (!hashMissing) {
+									if (cellData.hash_value != null)
+										dispValue = htmlEntities(cellData.hash_value);
+									extraElements += `<span class="cellHashValue hidden">&lt;${cellData.hash.toString(16).toUpperCase().padStart(8, "0")}&gt;</span>`;
+									needsWrapper = true;
+								}
+							}
+		
+							// put in a tag. optionally add a link
+							let tagValue = "<a";
+							tagValue += IsNullOrWhitespace(cellData.match_link) ? "" : ` href="${cellData.match_link}" title="${cellData.raw_value}"`;
+							tagValue += cellData.match_hints instanceof Array ? ` class="${cellData.match_hints.join(" ")}"` : "";
+							tagValue += `>${dispValue}</a>`;
+							// but no empty elements
+							tagValue = tagValue.replace("<a></a>", "");
 						
-						if (!hashMissing) {
-							if (display.hash_value != null)
-								dispValue = htmlEntities(display.hash_value);
-							extraElements += `<span class="hashValue hidden">&lt;${display.hash.toString(16).toUpperCase().padStart(8, "0")}&gt;</span>`;
-							needsWrapper = true;
+							// overwriting it at the end
+							display = tagValue + extraElements;
+						}
+						else {
+							display = htmlEntities(cellData);
 						}
 					}
+					else {
+						// something to process! assuming it's a flag for now
+						let value = "undefined";
+						try {
+							value = cellData[field];
+						}
+						catch {
+							console.error("Failed to get field from cell data");
+						}
 
-					// put in a tag. optionally add a link
-					let tagValue = "<a"
-					tagValue = "<a"
-					tagValue += IsNullOrWhitespace(display.match_link) ? "" : ` href="${display.match_link}" title="${display.raw_value}"`;
-					tagValue += display.match_hints instanceof Array ? ` class="${display.match_hints.join(" ")}"` : "";
-					tagValue += `>${dispValue}</a>`;
-					// but no empty elements
-					tagValue = tagValue.replace("<a></a>", "");
-				
-					// overwriting it at the end
-					display = tagValue + extraElements;
+						classes.push("cellFlag");
+						if (value == 0)
+							classes.push("cellFlagFalse");
+
+						//display = value == 1 ? "x" : "";
+						display = value == 1;
+					}
+
+					if (needsWrapper)
+						display = `<div class="cellWrapper">${display}</div>`;
+	
+					var attributesText = "";
+					if (classes.length != 0)
+						attributesText = ` class="${classes.join(" ")}"`;
+	
+					table += `<td${attributesText}>${display}</td>`;
 				}
-				else {
-					display = htmlEntities(display);
-				}
-
-				if (needsWrapper)
-					display = `<div class="cellWrapper">${display}</div>`;
-
-				var attributesText = "";
-				if (classes.length != 0)
-					attributesText = ` class="${classes.join(" ")}"`;
-
-				table += `<td${attributesText}>${display}</td>`;
 			}
 			table += "</tr>\n";
 		}
@@ -727,14 +768,14 @@ class BDATcollator {
 
 	// cleanup and processing
 	BDATcollator.CleanupSheetsStage1();
-	BDATcollator.CleanupSheetsStage2(BDATcollator.SheetLinks.localizations);
+	/*BDATcollator.CleanupSheetsStage2(BDATcollator.SheetLinks.localizations);
 	BDATcollator.CleanupSheetsStage2(BDATcollator.SheetLinks.links);
 	BDATcollator.CleanupSheetsStage3(BDATcollator.SheetLinks.localizations, {
 		"target_column": "$id",
         "target_column_display": "name",
-		"hints": ["localizationCell"]
+		"hints": ["cellLocalization"]
 	});
-	BDATcollator.CleanupSheetsStage3(BDATcollator.SheetLinks.links);
+	BDATcollator.CleanupSheetsStage3(BDATcollator.SheetLinks.links);*/
 
 	// create sheet pages
 	for (const sheet of BDATcollator.BDATSheets.values()) {
@@ -751,6 +792,7 @@ class BDATcollator {
 	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/common.bdat#CHR_Dr"));
 	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/common.bdat#CHR_Bl"));
 	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/common.bdat#CHR_Ir"));
+	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/common.bdat#BTL_Class"));
 	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get(BDATcollator.LocalizationPath + "/common_ms.bdat#chr_dr_ms"));
 	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get(BDATcollator.LocalizationPath + "/common_ms.bdat#chr_bl_ms"));
 	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/common.bdat#MNU_DlcGift"));

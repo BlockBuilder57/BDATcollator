@@ -17,21 +17,28 @@ section {
 .columnType {
 	color: lightgray;
 }
+.columnFlag {
+	background: var(--th-bg-dark) !important;
+}
 
 .cellWrapper {
 	display: flex;
 	flex-direction: column;
 }
 
-.hashCell {
+.cellHash {
 	font-family: monospace;
 }
-.hashValue {
+.cellHashValue {
 	font-style: italic;
 }
-.localizationCell {
+.cellLocalization {
 	color: var(--td-color);
 	text-decoration: underline dotted;
+}
+.cellFlag {}
+.cellFlagFalse {
+	opacity: 0.25;
 }
 
 table.sortable > thead > tr#header > th.columnMeta,
