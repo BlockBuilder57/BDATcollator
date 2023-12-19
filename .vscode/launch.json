@@ -7,11 +7,20 @@
 		{
 			"type": "node",
 			"request": "launch",
-			"name": "Launch Program",
+			"name": "BDATcollator",
 			"skipFiles": [
 				"<node_internals>/**"
 			],
 			"program": "${workspaceFolder}/script.js"
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Copy Columns",
+			"skipFiles": [
+				"<node_internals>/**"
+			],
+			"program": "${workspaceFolder}/tools/copyColumns.js"
 		}
 	]
 }
