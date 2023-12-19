@@ -1,21 +1,31 @@
+body {
+	--font-family: 'M+1 Nerd Font', 'Times New Roman', 'MS Gothic', Times, serif;
+	--monospace-font-family: 'M+1Code Nerd Font', 'MS Gothic', monospace;
+
+	--bg: white;
+	--font-color: black;
+
+	background: var(--bg);
+	color: var(--font-color);
+	font-family: var(--font-family);
+	font-size: 14px;
+}
+
 .hidden {
 	display: none;
-}
-
-* {
-	font-family: 'M+1Code Nerd Font', 'MS Gothic', 'Times New Roman', Times, serif;
-}
-
-section {
-	font-size: 14px;
 }
 
 /*
 ** Table styling
 */
 
+.sortable td {
+	font-family: var(--monospace-font-family);
+	font-weight: 350;
+}
+
 .columnType {
-	color: lightgray;
+	opacity: 0.6;
 }
 .columnFlag {
 	background: var(--th-bg-dark) !important;
@@ -24,16 +34,17 @@ section {
 .cellWrapper {
 	display: flex;
 	flex-direction: column;
+	/*margin: 0.25em 0;*/
 }
 
 .cellHash {
-	font-family: monospace;
+	font-weight: normal !important;
 }
 .cellRawValue {
 	font-style: italic;
 }
 .cellLocalization {
-	color: var(--td-color);
+	color: var(--tr-color) !important;
 	text-decoration: underline dotted;
 }
 .cellFlag {}
@@ -43,5 +54,23 @@ section {
 
 table.sortable > thead > tr#header > th.columnMeta,
 table.sortable > tbody > tr > td.cellMeta {
-	border-right: 3px double black;
+	border-right: 3px double var(--border-color);
+}
+
+/*
+** Dark theme
+*/
+
+@media (prefers-color-scheme: dark) {
+	body {
+		--bg: #0D0D0D;
+		--font-color: white;
+	}
+
+	:link {
+		color: rgb(137, 118, 213);
+	}
+	:visited {
+		color: rgb(85, 57, 110);
+	}
 }

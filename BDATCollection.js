@@ -20,6 +20,7 @@ const BDATTypes = [
 	"TranslationIndex"
 ];
 
+// A holder for bdat-rs outputs.
 class BDATCollection {
 
 	constructor(rootPath, localizationId) {
@@ -90,7 +91,7 @@ class BDATCollection {
 				continue;
 			}
 
-			this.AddTableSchema(schemaFile);
+			await this.AddTableSchema(schemaFile);
 		}
 	}
 

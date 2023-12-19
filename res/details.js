@@ -15,12 +15,11 @@ function bounceCheckboxEvent(e) {
 	if (e == null) {
 		return null;
 	}
-	if (e instanceof String && e == "true" || e == "false") {
+	if (typeof(e) === "string" && e == "true" || e == "false") {
 		e = e == "true";
 	}
-	console.debug()
 	if (!(typeof(e) === "boolean" || e instanceof Event)) {
-		console.error("Bouncing event was not a bool or event", e);
+		console.error("Bouncing event was not a bool or event:", e, "typeof", typeof(e));
 		console.trace();
 		return null;
 	}
@@ -49,6 +48,11 @@ function showColumnTypes(e) {
 	else {
 		styleElem.innerHTML = ".columnType { display: none; }";
 	}
+
+	let checkbox = document.querySelector("#cbColumnTypes");
+	if (checkbox != null) {
+		checkbox.checked = e;
+	}
 }
 
 function showRawValues(e) {
@@ -67,6 +71,11 @@ function showRawValues(e) {
 	}
 	else {
 		styleElem.innerHTML = ".cellRawValue { display: none; }";
+	}
+
+	let checkbox = document.querySelector("#cbRawValues");
+	if (checkbox != null) {
+		checkbox.checked = e;
 	}
 }
 

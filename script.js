@@ -7,10 +7,14 @@ require("./utils.js")();
 
 class BDATcollator {
 
+	// Determines which language to make tables out of
 	static LocalizationPath = "/gb";
-	static SheetLinksPath = "data/xc2_sheet_links.json";
+	// Path to a json file with links
+	static SheetLinksPath = "data/xb2_sheet_links.json";
+	// The output path for all html files (created automatically)
 	static OutPath = "out/";
-	static Collection = new bdat.BDATCollection("tables/xc2_210_base_hashed_edits", "/gb");
+	// The first argument is the folder path of the bdat-rs output
+	static Collection = new bdat.BDATCollection("tables/xb2_210_base_hashed_edits", this.LocalizationPath);
 
 	static async GetTemplates() {
 		this.TemplateIndex = (await fsp.readFile("templates/index.html")).toString("utf8");
@@ -25,8 +29,6 @@ class BDATcollator {
 			this.SheetLinks = JSON.parse(data);
 		}
 		catch (e) { console.error(e); }
-
-		
 
 		this.HashLookup = new Map();
 		if (fs.existsSync("data/xb3_hash_values.txt")) {
@@ -484,20 +486,12 @@ class BDATcollator {
 
 				for (const field of toIterate) {
 					var classes = [];
-					var needsWrapper = false;
 					var display = "";
 
 					if (field == "temp") {
 						if (IsObject(cellData)) {
 							let dispValue = htmlEntities(cellData.raw_value);
 							let extraElements = "";
-		
-							// display linked value if we need it
-							if (cellData.match_value != null && cellData.match_value != "") {
-								dispValue = htmlEntities(cellData.match_value);
-								extraElements += `<span class="cellRawValue">${cellData.raw_value}</span>`;
-								needsWrapper = true;
-							}
 		
 							if (columnType.get(key) == 9) {
 								classes.push("cellHash");
@@ -514,8 +508,12 @@ class BDATcollator {
 									if (cellData.hash_value != null)
 										dispValue = htmlEntities(cellData.hash_value);
 									extraElements += `<span class="cellRawValue">&lt;${cellData.hash.toString(16).toUpperCase().padStart(8, "0")}&gt;</span>`;
-									needsWrapper = true;
 								}
+							}
+							else if (!IsNullOrWhitespace(cellData.match_value)) {
+								// display linked value if we need it
+								dispValue = htmlEntities(cellData.match_value);
+								extraElements += `<span class="cellRawValue">${htmlEntities(cellData.raw_value)}</span>`;
 							}
 		
 							// put in a tag. optionally add a link
@@ -550,9 +548,8 @@ class BDATcollator {
 						//display = value == 1 ? "x" : "";
 						display = value == 1;
 					}
-
-					if (needsWrapper)
-						display = `<div class="cellWrapper">${display}</div>`;
+					
+					display = `<div class="cellWrapper">${display}</div>`;
 	
 					var attributesText = "";
 					if (classes.length != 0)
@@ -574,7 +571,9 @@ class BDATcollator {
 		}
 
 		var htmlout = this.TemplateSheet;
-		htmlout = htmlout.replace("{{table_name}}", sheet.parent_table).replace("{{sheet_name}}", sheet.name).replace("{{sheet_table}}", table);
+		htmlout = htmlout.replace("{{table_name}}", sheet.parent_table);
+		htmlout = htmlout.replace("{{sheet_name}}", sheet.name);
+		htmlout = htmlout.replace("{{sheet_table}}", table);
 	
 		var indexStream = fs.createWriteStream(outPath + sheet.name + ".html");
 		indexStream.write(htmlout);
@@ -588,22 +587,10 @@ class BDATcollator {
 	await BDATcollator.GetData();
 
 	// get .bschema files
-	//await BDATcollator.GetTableSchemas();
-	{
-		/*await BDATcollator.Collection.AddTableSchema("/mnu.bschema");
-		await BDATcollator.Collection.AddTableSchema("/sys.bschema");
-		await BDATcollator.Collection.AddTableSchema("/map.bschema");
-		await BDATcollator.Collection.AddTableSchema("/gb/game/menu.bschema");
-		await BDATcollator.Collection.AddTableSchema("/gb/game/system.bschema");*/
-		await BDATcollator.Collection.AddTableSchema("/common.bschema");
-		await BDATcollator.Collection.AddTableSchema("/gb/common_ms.bschema");
-	}
+	await BDATcollator.Collection.GetTableSchemas();
 
 	// get tables and their sheets
 	await BDATcollator.Collection.GetSheetsFromTableSchemas();
-
-	console.debug(BDATcollator.Collection);
-	console.debug('pepsi');
 
 	// create index page
 	await BDATcollator.CreateRootIndex();
@@ -614,7 +601,7 @@ class BDATcollator {
 	BDATcollator.CleanupSheetsStage2(BDATcollator.SheetLinks.links);
 	BDATcollator.CleanupSheetsStage3(BDATcollator.SheetLinks.localizations, {
 		"target_column": "$id",
-        "target_column_display": "name",
+		"target_column_display": "name",
 		"hints": ["cellLocalization"]
 	});
 	BDATcollator.CleanupSheetsStage3(BDATcollator.SheetLinks.links);
@@ -623,21 +610,6 @@ class BDATcollator {
 	for (const sheet of BDATcollator.Collection.Sheets.values()) {
 		BDATcollator.CreateSheetTable(sheet);
 	}
-	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/sys.bdat#CHR_PC"));
-	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/fld.bdat#FLD_ObjList"));
-	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/fld.bdat#FLD_NpcResource"));
-	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/prg.bdat#157937BA"));
-	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/mnu.bdat#MNU_EventTheater_scn"));
-	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/mnu.bdat#MNU_EventTheater_scn_DLC04"));
-	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/gb/game/system.bdat#msg_player_name"));
-	// 2
-	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/common.bdat#CHR_Dr"));
-	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/common.bdat#CHR_Bl"));
-	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/common.bdat#CHR_Ir"));
-	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/common.bdat#BTL_Class"));
-	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/gb/common_ms.bdat#chr_dr_ms"));
-	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/gb/common_ms.bdat#chr_bl_ms"));
-	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/common.bdat#MNU_DlcGift"));
 
 	console.log("Finished!");
 })()
