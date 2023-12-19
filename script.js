@@ -2,80 +2,15 @@ const fsp = require("node:fs/promises");
 const fs = require("node:fs");
 const path = require("node:path");
 const murmurHash3 = require("imurmurhash");
-const { match } = require("node:assert");
+const bdat = require("./BDATCollection.js");
+require("./utils.js")();
 
-function IsNullOrWhitespace( input ) {
-	return !(typeof input === 'string') || !input || !input.trim();
-}
-
-function IsObject(obj) {
-	return typeof obj === 'object' && !Array.isArray(obj) && obj !== null
-}
-
-// https://stackoverflow.com/a/14130005
-function htmlEntities(str) {
-    //return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    return String(str).replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-// https://stackoverflow.com/a/71166133
-const walk = async (dirPath) => Promise.all(
-  await fsp.readdir(dirPath, { withFileTypes: true }).then((entries) => entries.map((entry) => {
-    const childPath = path.join(dirPath, entry.name)
-    return entry.isDirectory() ? walk(childPath) : childPath
-  })),
-)
-
-// helper function for hashes, not used here
-function PrintMurmurList(list) {
-	var csv = "";
-	for (const elem of list) {
-		csv += `${murmurHash3(elem).result().toString(16).toUpperCase().padStart(8, "0")},${elem}\n`;
-	}
-
-	console.log(csv);
-}
- 
 class BDATcollator {
 
-	static RootPath = "tables/xc2_210_base_hashed_edits";
-	static OutPath = "out/";
-	static AllLocalizations = ["/cn", "/fr", "/gb", "/ge", "/it", "/jp", "/kr", "/sp", "/tw"];
 	static LocalizationPath = "/gb";
-
 	static SheetLinksPath = "data/xc2_sheet_links.json";
-
-	static BDATTableSchemas = new Map();
-	static BDATSheets = new Map();
-
-	static BDATTypes = [
-		"None",
-		"UInt8",
-		"UInt16",
-		"UInt32",
-		"Int8",
-		"Int16",
-		"Int32",
-		"String",
-		"Float",
-		// modern only
-		"HashRef",
-		"Percentage",
-		"DebugString",
-		"Unk0xC",
-		"TranslationIndex"
-	];
-
-	static async FetchJSON(file) {
-		try {
-			let data = await fsp.readFile(file);
-			//console.log(`got text: ${data.toString('utf8')}`);
-			return JSON.parse(data.toString("utf8"));
-		}
-		catch (e) {
-			return null;
-		}
-	}
+	static OutPath = "out/";
+	static Collection = new bdat.BDATCollection("tables/xc2_210_base_hashed_edits", "/gb");
 
 	static async GetTemplates() {
 		this.TemplateIndex = (await fsp.readFile("templates/index.html")).toString("utf8");
@@ -91,8 +26,7 @@ class BDATcollator {
 		}
 		catch (e) { console.error(e); }
 
-		// remove our localization path from an ignore list
-		this.IgnoreLocalizations = this.AllLocalizations.filter(x => x !== this.LocalizationPath);
+		
 
 		this.HashLookup = new Map();
 		if (fs.existsSync("data/xb3_hash_values.txt")) {
@@ -106,60 +40,10 @@ class BDATcollator {
 		}
 	}
 
-	static async GetTableSchema(filePath) {
-		console.debug("getting schema at", filePath);
-		const json = await this.FetchJSON(filePath);
-
-		if (json == null) {
-			console.error("Failed to open table schema:", filePath);
-			return null;
-		}
-
-		// we have the file, let's clean it up
-		let pathMinimized = filePath.substring(this.RootPath.length, path.length).replace("bschema", "bdat");
-
-		if (json.sheets == null) {
-			json.sheets = json.tables;
-			delete json.tables;
-		}
-
-		// json conditioning
-		json.bdat_path = pathMinimized;
-		json.folder_path = pathMinimized.split(".")[0] + "/";
-		json.sheets = json.sheets.map((entry) => {
-			if (entry.startsWith("<")) // clean hash names
-				entry = entry.substring(1, entry.length - 1);
-			return entry;
-		});
-
-		return json;
-	}
-
-	static async GetTableSchemas() {
-		const allFiles = await walk(BDATcollator.RootPath);
-		const allFilesFlat = allFiles.flat(Number.POSITIVE_INFINITY);
-
-		const schemaFiles = allFilesFlat.filter((e) => { return e.endsWith("bschema"); });
-
-		this.BDATTableSchemas.clear();
-
-		for (const schemaFile of schemaFiles) {
-			if (this.IgnoreLocalizations.findIndex((x) => schemaFile.startsWith(this.RootPath + x)) != -1) {
-				//console.debug("not getting schema for", schemaFile);
-				continue;
-			}
-
-			const schema = await this.GetTableSchema(schemaFile);
-			if (schema != null) {
-				this.BDATTableSchemas.set(schema.bdat_path, schema);
-			}
-		}
-	}
-
 	static async CreateRootIndex() {
 		var list = "<ul>";
 	
-		for (const schema of this.BDATTableSchemas.values()) {
+		for (const schema of this.Collection.TableSchemas.values()) {
 			let tableList = `<li><h3 class="bdatTableName">${schema.bdat_path}</h3><ul>`;
 	
 			for (const sheet of schema.sheets) {
@@ -185,54 +69,13 @@ class BDATcollator {
 		indexStream.end();
 	}
 
-	static async GetSheet(filePath, sheetName, schema) {
-		//console.debug("getting sheet", sheetName, "at", filePath);
-		const json = await this.FetchJSON(filePath);
-
-		if (json == null)
-			return null;
-
-		// json conditioning
-		json.name = sheetName;
-		if (schema != null) {
-			json.parent_table = schema.bdat_path;
-		}
-
-		return json;
-	}
-
-	static async GetSheetsFromTableSchema(schema) {
-		for (const sheet of schema.sheets) {
-			let sheetJson = await this.GetSheet(this.RootPath + schema.folder_path + sheet + ".json", sheet, schema);
-
-			if (sheetJson != null)
-				this.BDATSheets.set(schema.bdat_path + "#" + sheet, sheetJson);
-		}
-	}
-
-	static async GetSheetsFromTableSchemas() {
-		for (const schema of this.BDATTableSchemas.values()) {
-			await this.GetSheetsFromTableSchema(schema);
-		}
-	}
-
-	static GetColumnMapFromSheet(sheet) {
-		var map = new Map();
-		map.set("$id", sheet.rows.map(x => x["$id"]));
-		for (const column of sheet.schema) {
-			var data = sheet.rows.map(x => x[column.name]);
-			map.set(column.name, data);
-		}
-		return map;
-	}
-
 	// CLEANUP STAGE 1: HASHES
 	// bdat-rs takes care of hashes in the column names, but not in values!
 	// we want to be able to retain both, so let's do a bit of cleanup here
 	static CleanupSheetsStage1() {
-		let sheetKeys = this.BDATSheets.keys();
+		let sheetKeys = this.Collection.Sheets.keys();
 		for (const key of sheetKeys) {
-			let sheet = this.BDATSheets.get(key);
+			let sheet = this.Collection.Sheets.get(key);
 
 			let columnType = new Map();
 			for (const column of sheet.schema) {
@@ -267,7 +110,7 @@ class BDATcollator {
 				}
 			}
 
-			this.BDATSheets.set(key, sheet);
+			this.Collection.Sheets.set(key, sheet);
 		}
 	}
 
@@ -316,7 +159,7 @@ class BDATcollator {
 		if (links == null)
 			return;
 
-		const ALL_SHEETS = Array.from(this.BDATSheets.keys());
+		const ALL_SHEETS = Array.from(this.Collection.Sheets.keys());
 		for (let link of links) {
 			// if we have a default matchup, apply its properties
 			if (defaultLink != null)
@@ -352,7 +195,7 @@ class BDATcollator {
 			
 			//console.debug("all source sheets:", sourceSheets);
 			for (const sheetMatch of sourceSheets) {
-				const ALL_COLUMNS = this.BDATSheets.get(sheetMatch[0]).schema.map(x => x.name);
+				const ALL_COLUMNS = this.Collection.Sheets.get(sheetMatch[0]).schema.map(x => x.name);
 				
 				// src_column may also be a regular expression
 				// (we're checking here as columns can be different between sheets)
@@ -402,8 +245,8 @@ class BDATcollator {
 		console.debug("processing matchup", matchup);
 
 		// do standard shit here
-		var srcSheet = this.BDATSheets.get(matchup.src);
-		var targetSheet = this.BDATSheets.get(matchup.target);
+		var srcSheet = this.Collection.Sheets.get(matchup.src);
+		var targetSheet = this.Collection.Sheets.get(matchup.target);
 
 		if (srcSheet == null) {
 			console.warn(`Source sheet for ${matchup.src} -> ${matchup.target} not found`);
@@ -414,9 +257,9 @@ class BDATcollator {
 			return;
 		}
 
-		const srcColumn = this.GetColumnMapFromSheet(srcSheet).get(matchup.src_column);
-		const targetColumn = this.GetColumnMapFromSheet(targetSheet).get(matchup.target_column);
-		const targetColumnDisplay = IsNullOrWhitespace(matchup.target_column_display) ? targetColumn : this.GetColumnMapFromSheet(targetSheet).get(matchup.target_column_display);
+		const srcColumn = this.Collection.GetColumnMapFromSheet(srcSheet).get(matchup.src_column);
+		const targetColumn = this.Collection.GetColumnMapFromSheet(targetSheet).get(matchup.target_column);
+		const targetColumnDisplay = IsNullOrWhitespace(matchup.target_column_display) ? targetColumn : this.Collection.GetColumnMapFromSheet(targetSheet).get(matchup.target_column_display);
 
 		if (srcColumn == null) {
 			console.warn(`Source column (${matchup.src_column}) for ${matchup.src} -> ${matchup.target} not found`);
@@ -595,17 +438,17 @@ class BDATcollator {
 			if (column.flags != null) {
 				// we are making an assumption here: flags will likely only be ints
 				// just get the numbers from the end to get our length
-				let len = this.BDATTypes[column.type].split("Int");
+				let len = bdat.BDATTypes[column.type].split("Int");
 				len = parseInt(len[len.length - 1]);
 
 				// make separate columns for each flag
 				for (const flagPart of column.flags) {
-					table += `<th class="columnFlag">${htmlEntities(flagPart.label)}<span class="columnType"><br>Part of ${htmlEntities(column.name)}, ${this.BDATTypes[column.type]} - 0x${column.type.toString(16).toUpperCase()}<br>0b${flagPart.mask.toString(2).padStart(len, '0')}</span></th>\n`;
+					table += `<th class="columnFlag">${htmlEntities(flagPart.label)}<span class="columnType"><br>Part of ${htmlEntities(column.name)}, ${bdat.BDATTypes[column.type]} - 0x${column.type.toString(16).toUpperCase()}<br>0b${flagPart.mask.toString(2).padStart(len, '0')}</span></th>\n`;
 				}
 			}
 			else {
 				// can't wrap this because of the sorting arrow :(
-				table += `<th>${htmlEntities(column.name)}<span class="columnType"><br>${this.BDATTypes[column.type]} - 0x${column.type.toString(16).toUpperCase()}</span></th>\n`;
+				table += `<th>${htmlEntities(column.name)}<span class="columnType"><br>${bdat.BDATTypes[column.type]} - 0x${column.type.toString(16).toUpperCase()}</span></th>\n`;
 			}
 		}
 		table += "</tr></thead>\n";
@@ -747,27 +590,23 @@ class BDATcollator {
 	// get .bschema files
 	//await BDATcollator.GetTableSchemas();
 	{
-		/*var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + "/mnu.bschema");
-		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);
-		var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + "/sys.bschema");
-		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);
-		var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + "/map.bschema");
-		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);
-		var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + BDATcollator.LocalizationPath + "/game/menu.bschema");
-		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);
-		var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + BDATcollator.LocalizationPath + "/game/system.bschema");
-		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);*/
-		var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + "/common.bschema");
-		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);
-		var schema = await BDATcollator.GetTableSchema(BDATcollator.RootPath + BDATcollator.LocalizationPath + "/common_ms.bschema");
-		BDATcollator.BDATTableSchemas.set(schema.bdat_path, schema);
+		/*await BDATcollator.Collection.AddTableSchema("/mnu.bschema");
+		await BDATcollator.Collection.AddTableSchema("/sys.bschema");
+		await BDATcollator.Collection.AddTableSchema("/map.bschema");
+		await BDATcollator.Collection.AddTableSchema("/gb/game/menu.bschema");
+		await BDATcollator.Collection.AddTableSchema("/gb/game/system.bschema");*/
+		await BDATcollator.Collection.AddTableSchema("/common.bschema");
+		await BDATcollator.Collection.AddTableSchema("/gb/common_ms.bschema");
 	}
+
+	// get tables and their sheets
+	await BDATcollator.Collection.GetSheetsFromTableSchemas();
+
+	console.debug(BDATcollator.Collection);
+	console.debug('pepsi');
 
 	// create index page
 	await BDATcollator.CreateRootIndex();
-
-	// get tables and their sheets
-	await BDATcollator.GetSheetsFromTableSchemas();
 
 	// cleanup and processing
 	BDATcollator.CleanupSheetsStage1();
@@ -781,24 +620,24 @@ class BDATcollator {
 	BDATcollator.CleanupSheetsStage3(BDATcollator.SheetLinks.links);
 
 	// create sheet pages
-	for (const sheet of BDATcollator.BDATSheets.values()) {
+	for (const sheet of BDATcollator.Collection.Sheets.values()) {
 		BDATcollator.CreateSheetTable(sheet);
 	}
-	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/sys.bdat#CHR_PC"));
-	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/fld.bdat#FLD_ObjList"));
-	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/fld.bdat#FLD_NpcResource"));
-	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/prg.bdat#157937BA"));
-	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/mnu.bdat#MNU_EventTheater_scn"));
-	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/mnu.bdat#MNU_EventTheater_scn_DLC04"));
-	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get(BDATcollator.LocalizationPath + "/game/system.bdat#msg_player_name"));
+	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/sys.bdat#CHR_PC"));
+	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/fld.bdat#FLD_ObjList"));
+	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/fld.bdat#FLD_NpcResource"));
+	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/prg.bdat#157937BA"));
+	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/mnu.bdat#MNU_EventTheater_scn"));
+	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/mnu.bdat#MNU_EventTheater_scn_DLC04"));
+	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/gb/game/system.bdat#msg_player_name"));
 	// 2
-	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/common.bdat#CHR_Dr"));
-	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/common.bdat#CHR_Bl"));
-	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/common.bdat#CHR_Ir"));
-	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/common.bdat#BTL_Class"));
-	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get(BDATcollator.LocalizationPath + "/common_ms.bdat#chr_dr_ms"));
-	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get(BDATcollator.LocalizationPath + "/common_ms.bdat#chr_bl_ms"));
-	//BDATcollator.CreateSheetTable(BDATcollator.BDATSheets.get("/common.bdat#MNU_DlcGift"));
+	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/common.bdat#CHR_Dr"));
+	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/common.bdat#CHR_Bl"));
+	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/common.bdat#CHR_Ir"));
+	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/common.bdat#BTL_Class"));
+	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/gb/common_ms.bdat#chr_dr_ms"));
+	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/gb/common_ms.bdat#chr_bl_ms"));
+	//BDATcollator.CreateSheetTable(BDATcollator.Collection.Sheets.get("/common.bdat#MNU_DlcGift"));
 
 	console.log("Finished!");
 })()
