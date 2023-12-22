@@ -46,4 +46,22 @@ module.exports = function() {
 			return null;
 		}
 	}
+
+	this.StartsWithList = function (str, list) {
+		for (const thing of list) {
+			if (str.startsWith(thing))
+				return true;
+		}
+
+		return false;
+	}
+
+	this.StartsWithListWhich = function (str, list) {
+		for (const thing of list) {
+			if (str.startsWith(thing))
+				return thing;
+		}
+
+		return null;
+	}
 }

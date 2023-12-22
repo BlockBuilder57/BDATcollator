@@ -1,7 +1,8 @@
 require("./utils.js")();
 const fsp = require("node:fs/promises");
 
-const AllLocalizations = ["/cn", "/fr", "/gb", "/ge", "/it", "/jp", "/kr", "/sp", "/tw"];
+const AllLocalizations = ["/cn/", "/fr/", "/gb/", "/ge/", "/it/", "/jp/", "/kr/", "/sp/", "/tw/"];
+const AllLocalizationNames = ["简体中文", "Français", "English", "Deutsch", "Italiano", "日本語", "한국어", "Español", "台湾"];
 const BDATTypes = [
 	"None",
 	"UInt8",
@@ -23,13 +24,13 @@ const BDATTypes = [
 // A holder for bdat-rs outputs.
 class BDATCollection {
 
-	constructor(rootPath, localizationId) {
+	constructor(rootPath, localizationKeeps) {
 		this.TableSchemas = new Map();
 		this.Sheets = new Map();
 		this.RootPath = rootPath;
 
 		// remove our localization path from an ignore list
-		this.IgnoreLocalizations = AllLocalizations.filter(x => x !== localizationId);
+		this.IgnoreLocalizations = AllLocalizations.filter((x) => !localizationKeeps.includes(x));
 	}
 
 	// Reads the .bschema at the provided file path and returns an object (with tweaks:)
@@ -39,7 +40,7 @@ class BDATCollection {
 		if (!filePath.startsWith(this.RootPath))
 			filePath = this.RootPath + filePath;
 
-		console.debug("getting schema at", filePath);
+		//console.debug("getting schema at", filePath);
 		const json = await FetchJSON(filePath);
 
 		if (json == null) {
@@ -86,12 +87,12 @@ class BDATCollection {
 		this.TableSchemas.clear();
 
 		for (const schemaFile of schemaFiles) {
-			if (this.IgnoreLocalizations.findIndex((x) => schemaFile.startsWith(this.RootPath + x)) != -1) {
+			if (StartsWithList(schemaFile.substring(this.RootPath.length), this.IgnoreLocalizations)) {
 				//console.debug("not getting schema for", schemaFile);
 				continue;
 			}
 
-			await this.AddTableSchema(schemaFile);
+			var schema = await this.AddTableSchema(schemaFile);
 		}
 	}
 
@@ -146,5 +147,6 @@ class BDATCollection {
 module.exports = {
 	BDATCollection: BDATCollection,
 	AllLocalizations: AllLocalizations,
+	AllLocalizationNames: AllLocalizationNames,
 	BDATTypes: BDATTypes
 };

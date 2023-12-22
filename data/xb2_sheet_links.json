@@ -227,17 +227,17 @@
         {
             "src": "/common.bdat#CHR_Bl",
             "src_column": "Name",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#chr_bl_ms"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#chr_bl_ms"
         },
         {
             "src": "/common.bdat#CHR_Dr",
             "src_column": "Name",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#chr_dr_ms"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#chr_dr_ms"
         },
         {
             "src": "/\\/common\\.bdat#CHR_(Dr|Bl)/",
             "src_column": "/FavoriteCategory([0-9]+)/",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_favorite_category",
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#menu_favorite_category",
             "ignore_zero_values": true,
             "hide_zero_values": true,
             "value_offset": -11
@@ -245,185 +245,185 @@
         {
             "src": "/common.bdat#CHR_Ir",
             "src_column": "TeamName",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#chr_dr_ms"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#chr_dr_ms"
         },
         {
             "src": "/common.bdat#FLD_maplist",
             "src_column": "nameID",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#fld_mapinfo"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#fld_mapinfo"
         },
         {
             "src": "/common.bdat#FLD_FieldSkillList",
             "src_column": "/Name|Caption/",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#fld_fieldskilltxt"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#fld_fieldskilltxt"
         },
         {
             "src": "/\\/common\\.bdat#ITM_(.+)/",
             "src_column": "Rarity",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_rarity",
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#menu_rarity",
             "ignore_zero_values": true,
             "value_offset": 1
         },
         {
             "src": "/common.bdat#ITM_PcEquip",
             "src_column": "Name",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_pcequip"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#itm_pcequip"
         },
         {
             "src": "/common.bdat#ITM_PcWpn",
             "src_column": "Name",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_pcwpn_ms"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#itm_pcwpn_ms"
         },
         {
             "src": "/common.bdat#ITM_PcWpnChip",
             "src_column": "Name",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_pcwpnchip_ms"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#itm_pcwpnchip_ms"
         },
         {
             "src": "/common.bdat#ITM_Orb",
             "src_column": "Name",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_orb"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#itm_orb"
         },
         {
             "src": "/common.bdat#ITM_OrbEquip",
             "src_column": "Name",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_orb"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#itm_orb"
         },
         {
             "src": "/common.bdat#ITM_SalvageList",
             "src_column": "/Name|Caption/",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_salvage"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#itm_salvage"
         },
         {
             "src": "/\\/common\\.bdat#ITM_PreciousList(.+)?/",
             "src_column": "/Name|Caption/",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_precious"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#itm_precious"
         },
         {
             "src": "/common.bdat#ITM_InfoList",
             "src_column": "/Name|Caption/",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_info"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#itm_info"
         },
         {
             "src": "/common.bdat#ITM_EventList",
             "src_column": "/Name|Caption/",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_evt"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#itm_evt"
         },
         {
             "src": "/common.bdat#ITM_CollectionList",
             "src_column": "/Name|Caption/",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_collection"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#itm_collection"
         },
         {
             "src": "/common.bdat#ITM_CollectionList",
             "src_column": "Category",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_collectionitemtype",
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#menu_collectionitemtype",
             "value_offset": -3
         },
         {
             "src": "/common.bdat#ITM_TresureList",
             "src_column": "/Name|Caption/",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_tresure"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#itm_tresure"
         },
         {
             "src": "/common.bdat#ITM_FavoriteList",
             "src_column": "/Name|Caption/",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_favorite"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#itm_favorite"
         },
         {
             "src": "/common.bdat#ITM_FavoriteList",
             "src_column": "Category",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_favorite_category",
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#menu_favorite_category",
             "ignore_zero_values": true,
             "value_offset": -11
         },
         {
             "src": "/common.bdat#ITM_CrystalList",
             "src_column": "Name",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_crystal"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#itm_crystal"
         },
         {
             "src": "/common.bdat#ITM_BoosterList",
             "src_column": "Name",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_booster"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#itm_booster"
         },
         {
             "src": "/common.bdat#ITM_BoosterList",
             "src_column": "Category",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_ideacollar_ms",
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#menu_ideacollar_ms",
             "ignore_zero_values": true,
             "value_offset": 1
         },
         {
             "src": "/common.bdat#ITM_HanaRole",
             "src_column": "Name",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_hana_role_ms"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#itm_hana_role_ms"
         },
         {
             "src": "/common.bdat#ITM_HanaRole",
             "src_column": "Role",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_role_name_ms"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#menu_role_name_ms"
         },
         {
             "src": "/common.bdat#ITM_HanaAtr",
             "src_column": "/Name|Caption/",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_hana_atr_ms"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#itm_hana_atr_ms"
         },
         {
             "src": "/common.bdat#ITM_HanaArtsEnh",
             "src_column": "Name",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_orb"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#itm_orb"
         },
         {
             "src": "/common.bdat#ITM_HanaNArtsSet",
             "src_column": "Name",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_hana_narts_set_ms"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#itm_hana_narts_set_ms"
         },
         {
             "src": "/common.bdat#ITM_HanaAssist",
             "src_column": "Name",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_orb"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#itm_orb"
         },
         {
             "src": "/common.bdat#MNU_DlcGift",
             "src_column": "title",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_dlc_gift"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#menu_dlc_gift"
         },
         {
             "src": "/common.bdat#ITM_PcWpnType",
             "src_column": "Name",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#itm_pcwpntype_ms"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#itm_pcwpntype_ms"
         },
         {
             "src": "/common.bdat#ITM_PcWpnType",
             "src_column": "Role",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_role_name_ms"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#menu_role_name_ms"
         },
         {
             "src": "/common.bdat#ITM_OrbRecipe",
             "src_column": "RscCat",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_collectionitemtype",
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#menu_collectionitemtype",
             "value_offset": -3
         },
         {
             "src": "/common.bdat#CHR_EnArrange",
             "src_column": "Name",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#fld_enemyname"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#fld_enemyname"
         },
         {
             "src": "/common.bdat#MNU_Msg_Attr",
             "src_column": "name",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_attr_ms"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#menu_attr_ms"
         },
         {
             "src": "/common.bdat#MNU_Msg_Gender",
             "src_column": "name",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_ms"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#menu_ms"
         },
         {
             "src": "/common.bdat#MNU_Msg_Race",
             "src_column": "name",
-            "target": "{{LOCALIZATION_PATH}}/common_ms.bdat#menu_ms"
+            "target": "{{LOCALIZATION_PATH}}common_ms.bdat#menu_ms"
         }
     ],
     "links": [

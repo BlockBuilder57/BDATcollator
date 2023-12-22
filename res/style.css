@@ -16,12 +16,23 @@ body {
 }
 
 /*
+** Index
+*/
+
+.bdatHash {
+	font-family: var(--monospace-font-family);
+}
+
+/*
 ** Table styling
 */
 
 .sortable td {
 	font-family: var(--monospace-font-family);
 	font-weight: 350;
+}
+td.cellMeta {
+	white-space: initial !important;
 }
 
 .columnType {

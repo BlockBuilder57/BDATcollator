@@ -3,26 +3,25 @@
         {
             "src": "/sys.bdat#CHR_PC",
             "src_column": "Name",
-            "target": "{{LOCALIZATION_PATH}}/game/system.bdat#msg_player_name"
+            "target": "{{LOCALIZATION_PATH}}game/system.bdat#msg_player_name"
         },
         {
             "src": "/\\/mnu\\.bdat#MNU_EventTheater_scn(.+)?/",
             "src_column": "title",
-            "target": "{{LOCALIZATION_PATH}}/game/menu.bdat#msg_mnu_event_name"
+            "target": "{{LOCALIZATION_PATH}}game/menu.bdat#msg_mnu_event_name"
         },
         {
             "src": "/\\/(.+)\\.bdat#(.+)_GMK_Location/",
             "src_column": "LocationName",
-            "target": "{{LOCALIZATION_PATH}}/game/system.bdat#msg_location_name"
+            "target": "{{LOCALIZATION_PATH}}game/system.bdat#msg_location_name"
         },
         {
             "src": "/sys.bdat#SYS_MapList",
             "src_column": "Name",
-            "target": "{{LOCALIZATION_PATH}}/game/system.bdat#msg_location_name"
+            "target": "{{LOCALIZATION_PATH}}game/system.bdat#msg_location_name"
         }
     ],
     "links": [
-        
         {
             "src": "/sys.bdat#CHR_PC",
             "src_column": "MealMountObj",
@@ -107,6 +106,41 @@
             "target": "/sys.bdat#SYS_MapList",
             "target_column": "$id",
             "target_column_display": "Name"
+        },
+        {
+            "src": "/sys.bdat#SYS_MapList",
+            "src_column": "ResourceId",
+            "target": "/sys.bdat#RSC_MapFile",
+            "target_column": "$id",
+            "target_column_display": "ID"
+        },
+        {
+            "src": "/sys.bdat#SYS_MapList",
+            "src_column": "WeatherData",
+            "target": "/sys.bdat#SYS_WeatherTable",
+            "target_column": "$id",
+            "target_column_display": "ID"
+        },
+        {
+            "src": "/sys.bdat#SYS_WeatherTable",
+            "src_column": "/TimeZone(.+)/",
+            "target": "/sys.bdat#SYS_WeatherRate",
+            "target_column": "$id",
+            "target_column_display": "ID"
+        },
+        {
+            "src": "/sys.bdat#SYS_WeatherRate",
+            "src_column": "/Weather[0-9]/",
+            "target": "/sys.bdat#RSC_WeatherSet",
+            "target_column": "$id",
+            "target_column_display": "ID"
+        },
+        {
+            "src": "/sys.bdat#SYS_MapList",
+            "src_column": "BgmCondition",
+            "target": "/sys.bdat#SYS_BGMCondition",
+            "target_column": "$id",
+            "target_column_display": "ID"
         }
     ]    
 }

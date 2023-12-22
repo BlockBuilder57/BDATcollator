@@ -7,14 +7,20 @@ require("./utils.js")();
 
 class BDATcollator {
 
-	// Determines which language to make tables out of
-	static LocalizationPath = "/gb";
+	// Determines which language to use for sheet localization
+	static LocalizationPath = "/gb/";
+	// Determines which languages to export tables for
+	static LocalizationsToExport = [this.LocalizationPath];
+	// Export the localization sheets (Localizations will still be made in the sheets, like XbTool's output)
+	static ExportLocalizationSheets = false;
+
 	// Path to a json file with links
-	static SheetLinksPath = "data/xb2_sheet_links.json";
+	static SheetLinksPath = "data/xb3_sheet_links.json";
 	// The output path for all html files (created automatically)
 	static OutPath = "out/";
 	// The first argument is the folder path of the bdat-rs output
-	static Collection = new bdat.BDATCollection("tables/xb2_210_base_hashed_edits", this.LocalizationPath);
+	// Second argument controls which languages to export
+	static Collection = new bdat.BDATCollection("tables/xb3_211_alldlc_hashed_edits", this.LocalizationsToExport);
 
 	static async GetTemplates() {
 		this.TemplateIndex = (await fsp.readFile("templates/index.html")).toString("utf8");
@@ -40,35 +46,6 @@ class BDATcollator {
 				this.HashLookup.set(murmurHash3(night).result().toString(16).toUpperCase().padStart(8, "0"), night);
 			}
 		}
-	}
-
-	static async CreateRootIndex() {
-		var list = "<ul>";
-	
-		for (const schema of this.Collection.TableSchemas.values()) {
-			let tableList = `<li><h3 class="bdatTableName">${schema.bdat_path}</h3><ul>`;
-	
-			for (const sheet of schema.sheets) {
-				let classes = ["bdatSheetName"];
-				if (sheet.match(/[0-9A-F]{8}/))
-					classes.push("bdatHash");
-	
-				tableList += `<li><a href="${schema.bdat_path.substring(1) + "/" + sheet + ".html"}" class="${classes.join(" ")}">${htmlEntities(sheet)}</a></li>`;
-			}
-	
-			tableList += "</ul></li>";
-			list += tableList;
-		}
-	
-		list += "</ul>";
-	
-		if (!fs.existsSync(this.OutPath)){
-			fs.mkdirSync(this.OutPath, { recursive: true });
-		}
-	
-		var indexStream = fs.createWriteStream(this.OutPath + "index.html");
-		indexStream.write(this.TemplateIndex.replace("{{table_list}}", list));
-		indexStream.end();
 	}
 
 	// CLEANUP STAGE 1: HASHES
@@ -244,7 +221,7 @@ class BDATcollator {
 	// a 1-1 match at this point so we can ignore most checking safely
 	// occaisionally, we'll need criteria to further the match.
 	static CleanupSheetsStage3_DoMatch(matchup) {
-		console.debug("processing matchup", matchup);
+		//console.debug("processing matchup", matchup);
 
 		// do standard shit here
 		var srcSheet = this.Collection.Sheets.get(matchup.src);
@@ -419,11 +396,83 @@ class BDATcollator {
 		}
 	}
 
+	// HTML creating functions
+
+	static async CreateRootIndex() {
+		let dataList = "<ul>\n";
+		let localizationList = "";
+
+		function printToSchema(schema) {
+			let tableList = `<li><span class="bdatTableName">${schema.bdat_path}</span><ul>\n`;
+	
+			for (const sheet of schema.sheets) {
+				let classes = ["bdatSheetName"];
+				let sheetName = sheet;
+				if (sheet.match(/^[0-9A-F]{8}$/)) {
+					sheetName = "<" + sheet + ">";
+					classes.push("bdatHash");
+				}
+	
+				tableList += `\t<li><a href="${schema.bdat_path.substring(1) + "/" + sheet + ".html"}" class="${classes.join(" ")}">${htmlEntities(sheetName)}</a></li>\n`;
+			}
+	
+			tableList += "</ul></li>";
+
+			return tableList;
+		}
+	
+		for (const schema of Array.from(this.Collection.TableSchemas.values()).filter(x => !StartsWithList(x.bdat_path, bdat.AllLocalizations))) {
+			dataList += printToSchema(schema);
+		}
+		dataList += "</ul>\n";
+
+		if (this.ExportLocalizationSheets) {
+			let langMap = new Map();
+			for (const lang of bdat.AllLocalizations) {
+				langMap.set(lang, []);
+			}
+	
+			for (const schema of Array.from(this.Collection.TableSchemas.values()).filter(x => StartsWithList(x.bdat_path, bdat.AllLocalizations))) {
+				langMap.get(StartsWithListWhich(schema.bdat_path, bdat.AllLocalizations)).push(schema);
+			}
+	
+			for (const key of langMap.keys()) {
+				const arr = langMap.get(key);
+				if (arr.length == 0)
+					continue;
+
+				const nameIdx = bdat.AllLocalizations.indexOf(key);
+				localizationList += `<details><summary>${bdat.AllLocalizationNames[nameIdx]}</summary>`;
+				localizationList += "<ul>\n";
+				for (const schema of arr) {
+					localizationList += printToSchema(schema);
+				}
+				localizationList += "</ul>\n";
+				localizationList += "</details>\n";
+			}
+		}
+		else {
+			localizationList = "N/A";
+		}
+	
+		if (!fs.existsSync(this.OutPath)){
+			fs.mkdirSync(this.OutPath, { recursive: true });
+		}
+
+		var htmlout = this.TemplateIndex;
+		htmlout = htmlout.replace("{{data_list}}", dataList);
+		htmlout = htmlout.replace("{{localization_list}}", localizationList);
+	
+		var indexStream = fs.createWriteStream(this.OutPath + "index.html");
+		indexStream.write(htmlout);
+		indexStream.end();
+	}
+
 	static async CreateSheetTable(sheet) {
 		if (sheet == null)
 			return;
 
-		console.debug("creating page for", sheet.parent_table + "#" + sheet.name);
+		//console.debug("creating page for", sheet.parent_table + "#" + sheet.name);
 		//console.debug("its references:", sheet.references);
 
 		let columnType = new Map();
@@ -515,6 +564,10 @@ class BDATcollator {
 								dispValue = htmlEntities(cellData.match_value);
 								extraElements += `<span class="cellRawValue">${htmlEntities(cellData.raw_value)}</span>`;
 							}
+
+							// if we're not exporting localizations, don't add the link
+							if (!this.ExportLocalizationSheets && cellData.match_hints instanceof Array && cellData.match_hints.includes("cellLocalization"))
+								cellData.match_link = "";
 		
 							// put in a tag. optionally add a link
 							let tagValue = "<a";
@@ -583,19 +636,21 @@ class BDATcollator {
 
 (async () => {
 	// get templates and data
+	console.log("Getting templates");
 	await BDATcollator.GetTemplates();
+	console.log("Getting helper data");
 	await BDATcollator.GetData();
 
 	// get .bschema files
+	console.log("Getting table schemas");
 	await BDATcollator.Collection.GetTableSchemas();
 
 	// get tables and their sheets
+	console.log("Getting sheets in schemas");
 	await BDATcollator.Collection.GetSheetsFromTableSchemas();
 
-	// create index page
-	await BDATcollator.CreateRootIndex();
-
 	// cleanup and processing
+	console.log("Cleaning and processing sheets");
 	BDATcollator.CleanupSheetsStage1();
 	BDATcollator.CleanupSheetsStage2(BDATcollator.SheetLinks.localizations);
 	BDATcollator.CleanupSheetsStage2(BDATcollator.SheetLinks.links);
@@ -606,8 +661,17 @@ class BDATcollator {
 	});
 	BDATcollator.CleanupSheetsStage3(BDATcollator.SheetLinks.links);
 
+	// create index page
+	console.log("Creating root index");
+	await BDATcollator.CreateRootIndex();
+
 	// create sheet pages
+	console.log("Creating sheet pages");
 	for (const sheet of BDATcollator.Collection.Sheets.values()) {
+		// don't make pages from localization sheets if the user doesn't want to
+		if (!BDATcollator.ExportLocalizationSheets && StartsWithList(sheet.parent_table, BDATcollator.LocalizationsToExport))
+			continue;
+
 		BDATcollator.CreateSheetTable(sheet);
 	}
 
