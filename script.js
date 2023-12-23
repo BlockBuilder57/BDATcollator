@@ -257,7 +257,7 @@ class BDATcollator {
 		var targetFirstIndex = targetSheet.rows[0]["$id"];
 		var srcFirstIndex = srcSheet.rows[0]["$id"];
 
-		for (var i = 0; i < srcColumn.length; i++) {
+		for (var i = 0; i < srcSheet.rows.length; i++) {
 			var srcValue = srcColumn[i];
 			var srcBasicValue = srcValue;
 
@@ -275,8 +275,13 @@ class BDATcollator {
 				var failedCriteria = false;
 
 				// set columns if they haven't been set
-				for (var crit of matchup.criteria) {
-					crit.column = IsNullOrWhitespace(crit.column) ? matchup.src_column : crit.column;
+				for (let crit of matchup.criteria) {
+					if (IsNullOrWhitespace(crit.column)) {
+						crit.columnData = srcColumn;
+					}
+					else {
+						crit.columnData = this.Collection.GetColumnMapFromSheet(srcSheet).get(crit.column);
+					}
 				}
 
 				function CheckCriteriaType(type, func) {
@@ -291,10 +296,10 @@ class BDATcollator {
 					}
 				}
 
-				CheckCriteriaType("src_column_above", (crit) => { return srcColumn[i] > crit.value; });
-				CheckCriteriaType("src_column_below", (crit) => { return srcColumn[i] < crit.value; });
-				CheckCriteriaType("src_column_equals", (crit) => { return srcColumn[i] == crit.value; });
-				CheckCriteriaType("src_column_between", (crit) => { return srcColumn[i] > crit.above && srcColumn[i] < crit.below; });
+				CheckCriteriaType("src_column_above", (crit) => { return crit.columnData[i] > crit.value; });
+				CheckCriteriaType("src_column_below", (crit) => { return crit.columnData[i] < crit.value; });
+				CheckCriteriaType("src_column_equals", (crit) => { return crit.columnData[i] == crit.value; });
+				CheckCriteriaType("src_column_between", (crit) => { return crit.columnData[i] > crit.above && crit.columnData[i] < crit.below; });
 
 				// if we fail, onto the next
 				if (failedCriteria)
