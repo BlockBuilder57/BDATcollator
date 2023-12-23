@@ -13,7 +13,9 @@ window.addEventListener("hashchange", offsetAnchor);
 
 function bounceCheckboxEvent(e) {
 	if (e == null) {
-		return null;
+		// ideally this should return null, but that idea
+		// fails when there is no local storage data 
+		return false;
 	}
 	if (typeof(e) === "string" && e == "true" || e == "false") {
 		e = e == "true";

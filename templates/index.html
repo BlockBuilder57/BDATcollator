@@ -7,9 +7,16 @@
 	</head>
 	<body>
 		<h1>Tables</h1>
-		<h2>Data</h2>
-		<div id="dataList">{{data_list}}</div>
-		<h2>Localizations</h2>
-		<div id="localizationList">{{localization_list}}</div>
+		<section>
+			<h2>Data</h2>
+			<div id="dataList">{{dataList}}</div>
+		</section>
+		<section>
+			<h2>Localizations</h2>
+			<div id="localizationList">{{localizationList}}</div>
+		</section>
+		<footer>
+			<span id="generatedTimestamp">Page generated at {{new Date().toISOString()}}</span>
+		</footer>
 	</body>
 </html> 

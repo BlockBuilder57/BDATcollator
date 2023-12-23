@@ -11,13 +11,17 @@
 		<style id="cssRawValues"></style>
 	</head>
 	<body>
-		<div id="pageWrapper">
-			<h1><span class="tableName">{{table_name}}#</span>{{sheet_name}}</h1>
-			<section>
-				<input type="checkbox" id="cbColumnTypes"><label for="cbColumnTypes">Show Column Types</label><br>
-				<input type="checkbox" id="cbRawValues"><label for="cbRawValues">Show Raw Values</label><br>
-				{{sheet_table}}
-			</section>
-		</div>
+		<h1><span class="tableName">{{sheet.parent_table}}#</span>{{sheet.name}}</h1>
+		<section>
+			<a href="{{'/' + BDATcollator.OutPath}}">Back to Index</a><br>
+			<input type="checkbox" id="cbColumnTypes"><label for="cbColumnTypes">Show Column Types</label><br>
+			<input type="checkbox" id="cbRawValues"><label for="cbRawValues">Show Raw Values</label><br>
+			<input type="button" value="Open all references" onclick="openAll(true)">
+			<input type="button" value="Close all references" onclick="openAll(false)"><br>
+			{{table}}
+		</section>
+		<footer>
+			<span class="generatedTimestamp">Page generated at {{new Date().toISOString()}}</span>
+		</footer>
 	</body>
 </html> 

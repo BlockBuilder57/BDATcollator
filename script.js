@@ -378,8 +378,13 @@ class BDATcollator {
 				matchValue = targetValue.match_value;
 			}
 
+			// the match value
 			srcValue.match_value = matchValue;
+			// the url to the sheet+row
 			srcValue.match_link = matchLink;
+			// used for the title attribute when needed
+			srcValue.match_target = `${matchup.target}:${targetTrueIndex}`;
+			// any match hints, treated as css classes
 			srcValue.match_hints = matchup.hints;
 
 			// actually apply to the sheet
@@ -464,9 +469,15 @@ class BDATcollator {
 			fs.mkdirSync(this.OutPath, { recursive: true });
 		}
 
-		var htmlout = this.TemplateIndex;
-		htmlout = htmlout.replace("{{data_list}}", dataList);
-		htmlout = htmlout.replace("{{localization_list}}", localizationList);
+		var htmlout = this.TemplateIndex.replace(/{{(.+?)}}/g, (str, match) => {
+			// let's eval anything, very lazy templating method
+			try {
+				return eval(match);
+			}
+			catch (e) {
+				console.error(`Failed to read template tag for ${outFile} properly:`, e);
+			}
+		});
 	
 		var indexStream = fs.createWriteStream(this.OutPath + "index.html");
 		indexStream.write(htmlout);
@@ -571,12 +582,16 @@ class BDATcollator {
 							}
 
 							// if we're not exporting localizations, don't add the link
-							if (!this.ExportLocalizationSheets && cellData.match_hints instanceof Array && cellData.match_hints.includes("cellLocalization"))
+							// but we still want to show which sheet it came from, so let's set that
+							if (!this.ExportLocalizationSheets && cellData.match_hints instanceof Array && cellData.match_hints.includes("cellLocalization")) {
 								cellData.match_link = "";
+								cellData.match_title = cellData.match_target;
+							}
 		
 							// put in a tag. optionally add a link
 							let tagValue = "<a";
 							tagValue += IsNullOrWhitespace(cellData.match_link) ? "" : ` href="${cellData.match_link}"`;
+							tagValue += IsNullOrWhitespace(cellData.match_title) ? "" : ` title="${cellData.match_title}"`;
 							tagValue += cellData.match_hints instanceof Array ? ` class="${cellData.match_hints.join(" ")}"` : "";
 							tagValue += `>${dispValue}</a>`;
 							// but no empty elements
@@ -623,17 +638,23 @@ class BDATcollator {
 		table += "</table>\n";
 
 		const outPath = this.OutPath + sheet.parent_table + "/";
+		const outFile = outPath + sheet.name + ".html";
 	
 		if (!fs.existsSync(outPath)){
 			fs.mkdirSync(outPath, { recursive: true });
 		}
 
-		var htmlout = this.TemplateSheet;
-		htmlout = htmlout.replace("{{table_name}}", sheet.parent_table);
-		htmlout = htmlout.replace("{{sheet_name}}", sheet.name);
-		htmlout = htmlout.replace("{{sheet_table}}", table);
+		var htmlout = this.TemplateSheet.replace(/{{(.+?)}}/g, (str, match) => {
+			// let's eval anything, very lazy templating method
+			try {
+				return eval(match);
+			}
+			catch (e) {
+				console.error(`Failed to read template tag for ${outFile} properly:`, e);
+			}
+		});
 	
-		var indexStream = fs.createWriteStream(outPath + sheet.name + ".html");
+		var indexStream = fs.createWriteStream(outFile);
 		indexStream.write(htmlout);
 		indexStream.end();
 	}

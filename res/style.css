@@ -15,6 +15,14 @@ body {
 	display: none;
 }
 
+footer {
+	margin-top: 2em;
+}
+
+#generatedTimestamp {
+	opacity: 0.5;
+}
+
 /*
 ** Index
 */
@@ -32,7 +40,7 @@ body {
 	font-weight: 350;
 }
 td.cellMeta {
-	white-space: initial !important;
+	white-space: pre !important;
 }
 
 .columnType {
