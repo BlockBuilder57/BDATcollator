@@ -82,7 +82,10 @@ class BDATCollection {
 		const allFiles = await walk(this.RootPath);
 		const allFilesFlat = allFiles.flat(Number.POSITIVE_INFINITY);
 
-		const schemaFiles = allFilesFlat.filter((e) => { return e.endsWith("bschema"); });
+		let schemaFiles = allFilesFlat.filter((e) => { return e.endsWith("bschema"); });
+
+		// fix paths on windows
+		schemaFiles = schemaFiles.map((e) => e.replace(/\\/g, "/"));
 
 		this.TableSchemas.clear();
 
