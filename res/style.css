@@ -1,6 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+1:wght@200;300;400;500;600;700&family=M+PLUS+1+Code:wght@200;300;400;500;600;700&display=swap');
+
 body {
-	--font-family: 'M+1 Nerd Font', 'Times New Roman', 'MS Gothic', Times, serif;
-	--monospace-font-family: 'M+1Code Nerd Font', 'MS Gothic', monospace;
+	--font-family: 'M PLUS 1', 'M+1 Nerd Font', 'Times New Roman', 'MS Gothic', Times, serif;
+	--monospace-font-family: 'M PLUS 1 Code', 'M+1Code Nerd Font', 'MS Gothic', monospace;
 
 	--bg: white;
 	--font-color: black;

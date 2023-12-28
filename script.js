@@ -13,6 +13,8 @@ class BDATcollator {
 	static LocalizationsToExport = [this.LocalizationPath];
 	// Export the localization sheets (Localizations will still be made in the sheets, like XbTool's output)
 	static ExportLocalizationSheets = false;
+	// Exports tables that have 0 or 1 sheets 
+	static ExportSmallTables = false;
 
 	// Path to a json file with links
 	static SheetLinksPath = "data/xb3_sheet_links.json";
@@ -236,6 +238,15 @@ class BDATcollator {
 			return;
 		}
 
+		if (srcSheet.rows.length == 0) {
+			//console.warn(`Source sheet for ${matchup.src} -> ${matchup.target} was empty`);
+			return;
+		}
+		if (targetSheet.rows.length == 0) {
+			//console.warn(`Target sheet for ${matchup.src} -> ${matchup.target} was empty`);
+			return;
+		}
+
 		const srcColumn = this.Collection.GetColumnMapFromSheet(srcSheet).get(matchup.src_column);
 		const targetColumn = this.Collection.GetColumnMapFromSheet(targetSheet).get(matchup.target_column);
 		const targetColumnDisplay = IsNullOrWhitespace(matchup.target_column_display) ? targetColumn : this.Collection.GetColumnMapFromSheet(targetSheet).get(matchup.target_column_display);
@@ -263,7 +274,7 @@ class BDATcollator {
 
 			// first, if we're matching against 0, then that's probably an empty reference
 			// don't skip if we explicitly ignore zero values
-			if (srcValue == 0) {
+			if (srcValue == 0 || srcValue.hash_status == "null") {
 				if (matchup.hide_zero_values)
 					srcSheet.rows[i][matchup.src_column] = "";
 				if (!matchup.ignore_zero_values)
@@ -350,6 +361,14 @@ class BDATcollator {
 
 			var matchLink = `/${this.OutPath}${matchup.target.replace("#", "/")}.html#${targetTrueIndex}`.replace("//", "/");
 
+			// remove the offsets here
+			if (Number.isInteger(srcBasicValue) && Number.isInteger(matchup.value_offset)) {
+				if (IsObject(srcValue))
+					srcValue.raw_value -= matchup.value_offset;
+				else
+					srcValue -= matchup.value_offset;
+			}
+
 			if (!IsObject(srcValue)) {
 				srcValue = { "raw_value": srcValue };
 			}
@@ -412,7 +431,10 @@ class BDATcollator {
 		let dataList = "<ul>\n";
 		let localizationList = "";
 
-		function printToSchema(schema) {
+		function printToSchema(schema, disableLink) {
+			if (!BDATcollator.ExportSmallTables && schema.sheets.length <= 1)
+				return "";
+
 			let tableList = `<li><span class="bdatTableName">${schema.bdat_path}</span><ul>\n`;
 	
 			for (const sheet of schema.sheets) {
@@ -423,7 +445,12 @@ class BDATcollator {
 					classes.push("bdatHash");
 				}
 	
-				tableList += `\t<li><a href="${schema.bdat_path.substring(1) + "/" + sheet + ".html"}" class="${classes.join(" ")}">${htmlEntities(sheetName)}</a></li>\n`;
+				if (disableLink && !BDATcollator.ExportLocalizationSheets) {
+					tableList += `\t<li>${htmlEntities(sheetName)}</li>\n`;
+				}
+				else {
+					tableList += `\t<li><a href="${schema.bdat_path.substring(1) + "/" + sheet + ".html"}" class="${classes.join(" ")}">${htmlEntities(sheetName)}</a></li>\n`;
+				}
 			}
 	
 			tableList += "</ul></li>";
@@ -436,33 +463,30 @@ class BDATcollator {
 		}
 		dataList += "</ul>\n";
 
-		if (this.ExportLocalizationSheets) {
-			let langMap = new Map();
-			for (const lang of bdat.AllLocalizations) {
-				langMap.set(lang, []);
-			}
-	
-			for (const schema of Array.from(this.Collection.TableSchemas.values()).filter(x => StartsWithList(x.bdat_path, bdat.AllLocalizations))) {
-				langMap.get(StartsWithListWhich(schema.bdat_path, bdat.AllLocalizations)).push(schema);
-			}
-	
-			for (const key of langMap.keys()) {
-				const arr = langMap.get(key);
-				if (arr.length == 0)
-					continue;
-
-				const nameIdx = bdat.AllLocalizations.indexOf(key);
-				localizationList += `<details><summary>${bdat.AllLocalizationNames[nameIdx]}</summary>`;
-				localizationList += "<ul>\n";
-				for (const schema of arr) {
-					localizationList += printToSchema(schema);
-				}
-				localizationList += "</ul>\n";
-				localizationList += "</details>\n";
-			}
+		let langMap = new Map();
+		for (const lang of bdat.AllLocalizations) {
+			langMap.set(lang, []);
 		}
-		else {
-			localizationList = "N/A";
+
+		for (const schema of Array.from(this.Collection.TableSchemas.values()).filter(x => StartsWithList(x.bdat_path, bdat.AllLocalizations))) {
+			langMap.get(StartsWithListWhich(schema.bdat_path, bdat.AllLocalizations)).push(schema);
+		}
+
+		for (const key of langMap.keys()) {
+			const arr = langMap.get(key);
+			if (arr.length == 0)
+				continue;
+			if (!this.ExportSmallTables && arr.length <= 1)
+				continue;
+
+			const nameIdx = bdat.AllLocalizations.indexOf(key);
+			localizationList += `<details><summary>${bdat.AllLocalizationNames[nameIdx]}</summary>`;
+			localizationList += "<ul>\n";
+			for (const schema of arr) {
+				localizationList += printToSchema(schema, true);
+			}
+			localizationList += "</ul>\n";
+			localizationList += "</details>\n";
 		}
 	
 		if (!fs.existsSync(this.OutPath)){
@@ -558,11 +582,12 @@ class BDATcollator {
 							let dispValue = htmlEntities(cellData.raw_value);
 							let extraElements = "";
 		
-							if (columnType.get(key) == 9) {
+							if (columnType.get(key) == 0x9) {
 								classes.push("cellHash");
 			
 								let hashMissing = cellData.hash_status == "missing";
 								let hashNull = cellData.hash_status == "null";
+								let showRawValue = false;
 		
 								if (hashMissing)
 									classes.push("cellHashMissing");
@@ -572,8 +597,17 @@ class BDATcollator {
 								if (!hashMissing) {
 									if (cellData.hash_value != null)
 										dispValue = htmlEntities(cellData.hash_value);
-									extraElements += `<span class="cellRawValue">&lt;${cellData.hash.toString(16).toUpperCase().padStart(8, "0")}&gt;</span>`;
+									showRawValue = true;
 								}
+
+								// in the case where we match to another value (ie, localizations)
+								if (cellData.match_value != null) {
+									dispValue = htmlEntities(cellData.match_value);
+									showRawValue = true;
+								}
+
+								if (showRawValue)
+									extraElements += `<span class="cellRawValue">&lt;${cellData.hash.toString(16).toUpperCase().padStart(8, "0")}&gt;</span>`;
 							}
 							else if (!IsNullOrWhitespace(cellData.match_value)) {
 								// display linked value if we need it
@@ -697,6 +731,13 @@ class BDATcollator {
 		// don't make pages from localization sheets if the user doesn't want to
 		if (!BDATcollator.ExportLocalizationSheets && StartsWithList(sheet.parent_table, BDATcollator.LocalizationsToExport))
 			continue;
+
+		// don't export small tables if the user doesn't want to
+		if (BDATcollator.Collection.TableSchemas.has(sheet.parent_table)) {
+			let len = BDATcollator.Collection.TableSchemas.get(sheet.parent_table).sheets.length;
+			if (!BDATcollator.ExportSmallTables && len <= 1)
+				continue;
+		}
 
 		BDATcollator.CreateSheetTable(sheet);
 	}
