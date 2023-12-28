@@ -1,9 +1,293 @@
 {
+    "comments": [
+        "BTL_Achievement needs to get its AchieveType made into a link",
+        "FLD_NpcList 7F0A3296 -> FLD_NpcResource",
+        "/btl.bdat#D9B88F26 KeyChr[1-6] -> CHR_PC"
+    ],
     "localizations": [
         {
-            "src": "/sys.bdat#CHR_PC",
+            "src": "/sys.bdat#AMB_CollectionLot",
+            "src_column": "SetName",
+            "target": "{{LOCALIZATION_PATH}}game/menu.bdat#msg_mnu_amiibo"
+        },
+        {
+            "src": "/sys.bdat#AMB_SpecialAmiibo",
+            "src_column": "/Reword(.+)/",
+            "target": "{{LOCALIZATION_PATH}}game/menu.bdat#msg_mnu_amiibo"
+        },
+        {
+            "src": "/btl.bdat#BTL_Achievement",
+            "src_column": "Caption",
+            "target": "{{LOCALIZATION_PATH}}game/battle.bdat#msg_btl_achievement"
+        },
+        {
+            "src": "/btl.bdat#BTL_Arts_En",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/battle.bdat#msg_btl_arts_en_name"
+        },
+        {
+            "src": "/btl.bdat#BTL_Arts_PC",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/battle.bdat#msg_btl_arts_name"
+        },
+        {
+            "src": "/btl.bdat#BTL_Arts_PC",
+            "src_column": "Caption",
+            "target": "{{LOCALIZATION_PATH}}game/battle.bdat#msg_btl_arts_caption"
+        },
+        {
+            "src": "/btl.bdat#BTL_BuffDeBuff",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/battle.bdat#msg_btl_buffdebuff_name"
+        },
+        {
+            "src": "/btl.bdat#BTL_BuffDeBuff",
+            "src_column": "Caption",
+            "target": "{{LOCALIZATION_PATH}}game/battle.bdat#msg_btl_buffdebuff_caption"
+        },
+        {
+            "src": "/dlc.bdat#BTL_ChSU_Emblem",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/dlc.bdat#msg_btl_ChSU_emblem_name"
+        },
+        {
+            "src": "/dlc.bdat#BTL_ChSU_Emblem",
+            "src_column": "Caption",
+            "target": "{{LOCALIZATION_PATH}}game/dlc.bdat#C20EDDF5"
+        },
+        {
+            "src": "/dlc.bdat#BTL_ChSU_List",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/dlc.bdat#192F6292"
+        },
+        {
+            "src": "/dlc.bdat#BTL_ChSU_List",
+            "src_column": "Caption1",
+            "target": "{{LOCALIZATION_PATH}}game/dlc.bdat#18D9E310"
+        },
+        {
+            "src": "/dlc.bdat#BTL_ChSU_List",
+            "src_column": "/Caption[23]/",
+            "target": "{{LOCALIZATION_PATH}}game/dlc.bdat#2BA64A98"
+        },
+        {
+            "src": "/dlc.bdat#BTL_ChSU_List",
+            "src_column": "OrderConditionText",
+            "target": "{{LOCALIZATION_PATH}}game/dlc.bdat#EE23CB30"
+        },
+        {
+            "src": "/dlc.bdat#BTL_ChSU_SettingEvent",
+            "src_column": "Caption",
+            "target": "{{LOCALIZATION_PATH}}game/dlc.bdat#msg_btl_ChSU_event_caption"
+        },
+        {
+            "src": "/dlc.bdat#BTL_ChSU_SettingGate",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/dlc.bdat#msg_btl_ChSU_gate_name"
+        },
+        {
+            "src": "/dlc.bdat#BTL_ChSU_SettingGate",
+            "src_column": "Caption",
+            "target": "{{LOCALIZATION_PATH}}game/dlc.bdat#msg_btl_ChSU_gate_caption"
+        },
+        {
+            "src": "/dlc.bdat#BTL_ChSU_SettingShop",
+            "src_column": "Caption",
+            "target": "{{LOCALIZATION_PATH}}game/dlc.bdat#msg_btl_ChSU_shop_caption"
+        },
+        {
+            "src": "/dlc.bdat#BTL_ChTA_List",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/dlc.bdat#192F6292"
+        },
+        {
+            "src": "/dlc.bdat#BTL_ChTA_List",
+            "src_column": "Caption1",
+            "target": "{{LOCALIZATION_PATH}}game/dlc.bdat#18D9E310"
+        },
+        {
+            "src": "/dlc.bdat#BTL_ChTA_List",
+            "src_column": "/Caption[23]/",
+            "target": "{{LOCALIZATION_PATH}}game/dlc.bdat#2BA64A98"
+        },
+        {
+            "src": "/dlc.bdat#BTL_ChTA_List",
+            "src_column": "OrderConditionText",
+            "target": "{{LOCALIZATION_PATH}}game/dlc.bdat#EE23CB30"
+        },
+        {
+            "src": "/btl.bdat#BTL_Combo",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/battle.bdat#msg_btl_combo_name"
+        },
+        {
+            "src": "/btl.bdat#BTL_Enhance",
+            "src_column": "Caption",
+            "target": "{{LOCALIZATION_PATH}}game/battle.bdat#msg_btl_enhance_cap"
+        },
+        {
+            "src": "/btl.bdat#BTL_EnhanceEff",
+            "src_column": "Caption",
+            "target": "{{LOCALIZATION_PATH}}game/battle.bdat#msg_btl_enhance_name"
+        },
+        {
+            "src": "/dlc.bdat#BTL_HyperCombo",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/dlc.bdat#3B9EDF2E"
+        },
+        {
+            "src": "/dlc.bdat#BTL_HyperCombo",
+            "src_column": "/Caption(.*)/",
+            "target": "{{LOCALIZATION_PATH}}game/dlc.bdat#6F7982E8"
+        },
+        {
+            "src": "/btl.bdat#BTL_Reaction",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/battle.bdat#msg_btl_combo_name"
+        },
+        {
+            "src": "/btl.bdat#BTL_SetUp",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/battle.bdat#msg_btl_buffdebuff_name"
+        },
+        {
+            "src": "/btl.bdat#BTL_Skill_PC",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/battle.bdat#msg_btl_skill_name"
+        },
+        {
+            "src": "/btl.bdat#BTL_Stance",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/battle.bdat#msg_btl_stance_name"
+        },
+        {
+            "src": "/btl.bdat#BTL_Talent",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/battle.bdat#msg_btl_talent_name"
+        },
+        {
+            "src": "/btl.bdat#BTL_Talent",
+            "src_column": "Caption",
+            "target": "{{LOCALIZATION_PATH}}game/battle.bdat#msg_btl_talent_caption"
+        },
+        {
+            "src": "/btl.bdat#BTL_WpnType",
+            "src_column": "/^Name(2*)/",
+            "target": "{{LOCALIZATION_PATH}}game/battle.bdat#msg_btl_weapon_type"
+        },
+        {
+            "src": "/\\/sys\\.bdat#CHR_(PC|UroBody)/",
             "src_column": "Name",
             "target": "{{LOCALIZATION_PATH}}game/system.bdat#msg_player_name"
+        },
+        {
+            "src": "/fld.bdat#FLD_ColonyList",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/system.bdat#msg_colony_name"
+        },
+        {
+            "src": "/fld.bdat#FLD_ColonyList",
+            "src_column": "Caption",
+            "target": "{{LOCALIZATION_PATH}}game/system.bdat#msg_colony_text"
+        },
+        {
+            "src": "/fld.bdat#FLD_CookRecipe",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/field.bdat#8B7D949B"
+        },
+        {
+            "src": "/dlc.bdat#FLD_CraftTerminal",
+            "src_column": "/Name|Caption/",
+            "target": "{{LOCALIZATION_PATH}}game/field.bdat#41AAA47D"
+        },
+        {
+            "src": "/fld.bdat#FLD_EnemyData",
+            "src_column": "MsgName",
+            "target": "{{LOCALIZATION_PATH}}game/system.bdat#msg_enemy_name"
+        },
+        {
+            "src": "/fld.bdat#FLD_InfoList",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/system.bdat#CA2198EC"
+        },
+        {
+            "src": "/fld.bdat#FLD_MealRecipe",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/field.bdat#0103F5B8"
+        },
+        {
+            "src": "/fld.bdat#FLD_NpcResource",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/system.bdat#msg_npc_name",
+            "target_column": "label",
+            "ignore_zero_values": true
+        },
+        {
+            "src": "/fld.bdat#FLD_NpcResource",
+            "src_column": "Nickname",
+            "target": "{{LOCALIZATION_PATH}}game/system.bdat#msg_npc_tag_name",
+            "target_column": "label",
+            "ignore_zero_values": true
+        },
+        {
+            "src": "/\\/fld\\.bdat#FLD_Perk(Permanent|Temporary)/",
+            "src_column": "/^(Name[1-3]?|Caption[1-3]?)$/",
+            "target": "{{LOCALIZATION_PATH}}game/field.bdat#msg_fld_perk_name"
+        },
+        {
+            "src": "/\\/fld\\.bdat#FLD_Relation(Colony|Npc)/",
+            "src_column": "/^(Text[1-5])$/",
+            "target": "{{LOCALIZATION_PATH}}game/system.bdat#msg_kizuna_name"
+        },
+        {
+            "src": "/fld.bdat#FLD_UMonsterList",
+            "src_column": "GroupName",
+            "target": "{{LOCALIZATION_PATH}}game/system.bdat#msg_enemy_group_name"
+        },
+        {
+            "src": "/sys.bdat#ITM_Accessory",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/system.bdat#msg_item_accessory"
+        },
+        {
+            "src": "/sys.bdat#ITM_Collection",
+            "src_column": "/Name[2]?/",
+            "target": "{{LOCALIZATION_PATH}}game/system.bdat#msg_item_collection"
+        },
+        {
+            "src": "/sys.bdat#ITM_Collepedia",
+            "src_column": "/(Name|Text[2]?)/",
+            "target": "{{LOCALIZATION_PATH}}game/system.bdat#BEDB6533"
+        },
+        {
+            "src": "/sys.bdat#ITM_Cylinder",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/system.bdat#msg_item_cylinder"
+        },
+        {
+            "src": "/sys.bdat#ITM_Exchange",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/system.bdat#msg_item_exchange"
+        },
+        {
+            "src": "/sys.bdat#ITM_Extra",
+            "src_column": "/Name[2]?/",
+            "target": "{{LOCALIZATION_PATH}}game/system.bdat#msg_item_extra"
+        },
+        {
+            "src": "/sys.bdat#ITM_Gem",
+            "src_column": "/Name(_dlc04)?/",
+            "target": "{{LOCALIZATION_PATH}}game/system.bdat#msg_item_gem"
+        },
+        {
+            "src": "/sys.bdat#ITM_Info",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/system.bdat#CA2198EC"
+        },
+        {
+            "src": "/sys.bdat#ITM_Precious",
+            "src_column": "/(Name|Caption)[2]?/",
+            "target": "{{LOCALIZATION_PATH}}game/system.bdat#msg_item_precious"
         },
         {
             "src": "/\\/mnu\\.bdat#MNU_EventTheater_scn(.+)?/",
@@ -11,13 +295,158 @@
             "target": "{{LOCALIZATION_PATH}}game/menu.bdat#msg_mnu_event_name"
         },
         {
-            "src": "/\\/(.+)\\.bdat#(.+)_GMK_Location/",
-            "src_column": "LocationName",
-            "target": "{{LOCALIZATION_PATH}}game/system.bdat#msg_location_name"
+            "src": "/\\/mnu\\.bdat#MNU_EventTheater_scn(.+)?/",
+            "src_column": "scn_category",
+            "target": "{{LOCALIZATION_PATH}}game/menu.bdat#msg_mnu_event_theater_ms",
+            "value_offset": 40
+        },
+        {
+            "src": "/\\/mnu\\.bdat#MNU_EventTheater_scn(.+)?/",
+            "src_column": "scn_group",
+            "target": "{{LOCALIZATION_PATH}}game/menu.bdat#msg_mnu_event_theater_ms",
+            "value_offset": 1,
+            "criteria": [
+                {
+                    "type": "src_column_below",
+                    "value": 8
+                }
+            ]
+        },
+        {
+            "src": "/\\/mnu\\.bdat#MNU_EventTheater_scn(.+)?/",
+            "src_column": "scn_group",
+            "target": "{{LOCALIZATION_PATH}}game/system.bdat#msg_player_name",
+            "value_offset": -7,
+            "criteria": [
+                {
+                    "type": "src_column_above",
+                    "value": 7
+                }
+            ]
+        },
+        {
+            "src": "/mnu.bdat#MNU_HeroDictionary",
+            "src_column": "/CVName[2]?|ArtistName/",
+            "target": "{{LOCALIZATION_PATH}}game/menu.bdat#msg_mnu_hero_book"
+        },
+        {
+            "src": "/mnu.bdat#MNU_HeroDictionary",
+            "src_column": "/<3530020D>|<C65F4B14>/",
+            "target": "{{LOCALIZATION_PATH}}game/menu.bdat#msg_mnu_hero_hint"
+        },
+        {
+            "src": "/mnu.bdat#MNU_MapInfo",
+            "src_column": "disp_name",
+            "target": "{{LOCALIZATION_PATH}}game/menu.bdat#msg_mnu_minimap_areaname"
+        },
+        {
+            "src": "/\\/mnu\\.bdat#MNU_Patch(Info|Detail[A-B]?)/",
+            "src_column": "/(Detail(.+)Text[1-6]?)|<444EEAFE>|(Patch(.+)Text)|<2AF7F370>/",
+            "target": "{{LOCALIZATION_PATH}}game/menu.bdat#msg_mnu_patch_info"
+        },
+        {
+            "src": "/mnu.bdat#MNU_ShopList",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/system.bdat#msg_shop_name"
+        },
+        {
+            "src": "/mnu.bdat#MNU_TipsList",
+            "src_column": "/Title|Comment[1-6]/",
+            "target": "{{LOCALIZATION_PATH}}game/menu.bdat#msg_mnu_tutorial_tips"
+        },
+        {
+            "src": "/dlc.bdat#MNU_WeaponCraft",
+            "src_column": "WeaponName",
+            "target": "{{LOCALIZATION_PATH}}game/battle.bdat#msg_btl_weapon_type"
+        },
+        {
+            "src": "/\\/mnu\\.bdat#MNU(_game)?_option_(.+)/",
+            "src_column": "/name|help[1-4]?|<5925DC4C>|<7D13B44A>|<B6E3A0D7>|<D8225635>|<6FBE92E0>/",
+            "target": "{{LOCALIZATION_PATH}}game/menu.bdat#msg_mnu_option"
+        },
+        {
+            "src": "/mnu.bdat#MNU_saveload_scenario",
+            "src_column": "Chapter",
+            "target": "{{LOCALIZATION_PATH}}game/menu.bdat#msg_mnu_saveload"
+        },
+        {
+            "src": "/qst.bdat#QST_List",
+            "src_column": "/QuestTitle|Summary|Result[A-B]/",
+            "target": "{{LOCALIZATION_PATH}}game/quest.bdat#msg_qst_task"
+        },
+        {
+            "src": "/qst.bdat#QST_OverWrite",
+            "src_column": "OverWriteText",
+            "target": "{{LOCALIZATION_PATH}}game/quest.bdat#msg_qst_overwrite"
+        },
+        {
+            "src": "/qst.bdat#QST_RequestItemSet",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/quest.bdat#msg_qst_RequestItemSet"
+        },
+        {
+            "src": "/qst.bdat#QST_Task",
+            "src_column": "/TaskLog[1-2]/",
+            "target": "{{LOCALIZATION_PATH}}game/quest.bdat#msg_qst_task"
+        },
+        {
+            "src": "/qst.bdat#QST_Task",
+            "src_column": "/TaskLog[1-2]/",
+            "target": "{{LOCALIZATION_PATH}}game/quest.bdat#msg_qst_task"
+        },
+        {
+            "src": "/sys.bdat#RSC_PcCostumeOpen",
+            "src_column": "/UIName[1-6]/",
+            "target": "{{LOCALIZATION_PATH}}game/menu.bdat#msg_mnu_char_ms"
         },
         {
             "src": "/sys.bdat#SYS_MapList",
             "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/system.bdat#msg_location_name"
+        },
+        {
+            "src": "/\\/sys\\.bdat#SYS_(Trial|Tutorial)(.+)?/",
+            "src_column": "/Title|Text[1-2]?/",
+            "target": "{{LOCALIZATION_PATH}}game/menu.bdat#msg_mnu_tutorial_tips"
+        },
+        {
+            "src": "/\\/mnu\\.bdat#(5A744A5C|7E6F5DCC|B30AE3F7|DEC58736|E97C90CE)/",
+            "src_column": "/name|hint/",
+            "target": "{{LOCALIZATION_PATH}}game/menu.bdat#msg_mnu_mainmenu"
+        },
+        {
+            "src": "/dlc.bdat#947C9B0C",
+            "src_column": "Category",
+            "target": "{{LOCALIZATION_PATH}}game/menu.bdat#msg_mnu_dlc_collepedia"
+        },
+        {
+            "src": "/btl.bdat#BB82DEE6",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/battle.bdat#F6E689C3"
+        },
+        {
+            "src": "/btl.bdat#D9B88F26",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/battle.bdat#msg_btl_chainorder_name"
+        },
+        {
+            "src": "/map.bdat#GMK_ComSpot",
+            "src_column": "SpotName",
+            "target": "{{LOCALIZATION_PATH}}game/system.bdat#msg_comspot_name"
+        },
+        {
+            "src": "/\\/(map|dlc|zzz)\\.bdat#(.+)_GMK_EnemyPop/",
+            "src_column": "GroupName",
+            "target": "{{LOCALIZATION_PATH}}game/system.bdat#msg_enemy_group_name"
+        },
+        {
+            "src": "/\\/(map|dlc|zzz)\\.bdat#(.+)_GMK_Event/",
+            "src_column": "Name",
+            "target": "{{LOCALIZATION_PATH}}game/field.bdat#msg_fld_searchpoint"
+        },
+        {
+            "src": "/\\/(map|dlc|zzz)\\.bdat#(.+)_GMK_Location/",
+            "src_column": "LocationName",
             "target": "{{LOCALIZATION_PATH}}game/system.bdat#msg_location_name"
         }
     ],
@@ -39,6 +468,13 @@
             "src_column": "CookAssistMountObj",
             "target": "/fld.bdat#FLD_ObjList",
             "target_column": "ID"
+        },
+        {
+            "src": "/fld.bdat#FLD_NpcList",
+            "src_column": "<7F0A3296>",
+            "target": "/fld.bdat#FLD_NpcResource",
+            "target_column": "$id",
+            "target_column_display": "Name"
         },
         {
             "src": "/fld.bdat#FLD_NpcResource",
